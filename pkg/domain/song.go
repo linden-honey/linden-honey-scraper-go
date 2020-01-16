@@ -2,10 +2,10 @@ package domain
 
 // Song represents a domain object
 type Song struct {
-	Title  string
-	Author string
-	Album  string
-	Verses []Verse
+	Title  string  `json:"title"`
+	Author string  `json:"author"`
+	Album  string  `json:"album"`
+	Verses []Verse `json:"verses"`
 }
 
 // GetQuotes returns all quotes from the song

@@ -9,8 +9,7 @@ type Song struct {
 }
 
 // GetQuotes returns all quotes from the song
-func (s Song) GetQuotes() []Quote {
-	quotes := make([]Quote, 0)
+func (s Song) GetQuotes() (quotes []Quote) {
 	for _, verse := range s.Verses {
 		quotes = append(quotes, verse.Quotes...)
 	}

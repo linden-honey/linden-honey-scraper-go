@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestPrasePrevie(t *testing.T) {
+func TestParsePreviews(t *testing.T) {
 	html := `
 	<ul id="abc_list">
 	<li><a href="/texts/1056899068.html">Всё идёт по плану</a></li>
@@ -14,7 +14,7 @@ func TestPrasePrevie(t *testing.T) {
 	`
 	previews := ParsePreviews(html)
 	t.Log(previews)
-	if len(previews) != 3 {
+	if len(previews) != 2 {
 		t.Error("Parsing previews failed")
 	}
 }

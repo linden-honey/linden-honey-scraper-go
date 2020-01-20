@@ -36,13 +36,18 @@ func ParseSong(html string) domain.Song {
 func ParsePreviews(html string) (previews []domain.Preview) {
 	document := parseHTML(html)
 	document.Find("#abc_list a").Each(func(_ int, link *goquery.Selection) {
-		if path, exists := link.Attr("href"); exists {
-			title := link.Text()
-			id := path[strings.LastIndex(path, "/")+1 : strings.Index(path, ".")]
-			previews = append(previews, domain.Preview{
-				ID:    id,
-				Title: title,
-			})
+		path, pathExists := link.Attr("href")
+		if pathExists {
+			startIndex := strings.LastIndex(path, "/")
+			endIndex := strings.Index(path, ".")
+			if startIndex != -1 && endIndex != -1 {
+				title := link.Text()
+				id := path[startIndex+1 : endIndex]
+				previews = append(previews, domain.Preview{
+					ID:    id,
+					Title: title,
+				})
+			}
 		}
 	})
 	return previews

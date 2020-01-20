@@ -41,8 +41,8 @@ func ParsePreviews(html string) (previews []domain.Preview) {
 			startIndex := strings.LastIndex(path, "/")
 			endIndex := strings.Index(path, ".")
 			if startIndex != -1 && endIndex != -1 {
-				title := link.Text()
 				id := path[startIndex+1 : endIndex]
+				title := link.Text()
 				previews = append(previews, domain.Preview{
 					ID:    id,
 					Title: title,

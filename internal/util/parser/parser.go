@@ -11,7 +11,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func substringAfter(s, substr string) string {
+func substringAfterLast(s, substr string) string {
 	const EMPTY = ""
 	if len(s) == 0 {
 		return s
@@ -70,8 +70,8 @@ func parseLyrics(html string) []domain.Verse {
 func ParseSong(html string) domain.Song {
 	document := parseHTML(html)
 	title := document.Find("h2").Text()
-	author := strings.TrimSpace(substringAfter(document.Find("p:has(strong:contains(Автор))").Text(), ": "))
-	album := strings.TrimSpace(substringAfter(document.Find("p:has(strong:contains(Альбом))").Text(), ": "))
+	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
+	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
 	lyricsHTML, _ := document.Find("p:last-of-type").Html()
 	verses := parseLyrics(lyricsHTML)
 	return domain.Song{

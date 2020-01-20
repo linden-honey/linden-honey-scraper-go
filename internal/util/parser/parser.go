@@ -49,7 +49,6 @@ func ParseVerse(html string) domain.Verse {
 		if len(quote.Phrase) != 0 {
 			quotes = append(quotes, quote)
 		}
-
 	}
 	return domain.Verse{
 		Quotes: quotes,

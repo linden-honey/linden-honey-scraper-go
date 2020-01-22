@@ -42,7 +42,7 @@ func ParseQuote(html string) *domain.Quote {
 
 // ParseVerse parses html and returns a verse
 func ParseVerse(html string) *domain.Verse {
-	var quotes []domain.Quote
+	quotes := make([]domain.Quote, 0)
 	for _, text := range strings.Split(html, "<br/>") {
 		quote := ParseQuote(text)
 		if len(quote.Phrase) != 0 {

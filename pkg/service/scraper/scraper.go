@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gojektech/heimdall"
+	"golang.org/x/text/encoding/charmap"
 
+	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
 
 	"github.com/linden-honey/linden-honey-scraper-go/internal/util/parser"
@@ -16,6 +17,8 @@ import (
 )
 
 const userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"
+
+var decoder = charmap.Windows1251.NewDecoder()
 
 // RetryProperties represents a retry properties structure
 type RetryProperties struct {
@@ -63,12 +66,12 @@ func (scraper *scraper) FetchPreviews() []domain.Preview {
 		return previews
 	}
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
 	if err != nil {
 		log.Println(err)
 		return previews
 	}
-	return parser.ParsePreviews(string(body)) // TODO use reader in parser
+	return parser.ParsePreviews(string(body))
 }
 
 // Create returns a scraper instance

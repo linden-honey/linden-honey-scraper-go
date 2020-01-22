@@ -3,8 +3,8 @@ package domain
 // Song represents a domain object
 type Song struct {
 	Title  string  `validate:"required",json:"title"`
-	Author string  `json:"author"`
-	Album  string  `json:"album"`
+	Author string  `json:"author,omitempty"`
+	Album  string  `json:"album,omitempty"`
 	Verses []Verse `validate:"required",json:"verses"`
 }
 

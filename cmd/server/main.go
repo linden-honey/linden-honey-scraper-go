@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
@@ -18,6 +17,5 @@ func main() {
 		w.Write(bytes)
 		w.WriteHeader(200)
 	})
-	log.Println(s.FetchPreviews())
 	http.ListenAndServe(":8080", nil)
 }

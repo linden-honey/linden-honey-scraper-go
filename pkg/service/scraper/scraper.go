@@ -7,18 +7,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
 	"golang.org/x/text/encoding/charmap"
 
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
 
-	"github.com/linden-honey/linden-honey-scraper-go/internal/util/parser"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/parser"
 )
-
-const userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"
-
-var decoder = charmap.Windows1251.NewDecoder()
 
 // RetryProperties represents a retry properties structure
 type RetryProperties struct {
@@ -46,6 +43,29 @@ type scraper struct {
 	client  *httpclient.Client
 }
 
+func (scraper *scraper) fetch(path string) (string, error) {
+	url := fmt.Sprintf("%s/%s", scraper.baseURL, path)
+	header := http.Header{
+		"User-Agent": []string{
+			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+		},
+	}
+	res, err := scraper.client.Get(url, header)
+	if err != nil {
+		return "", errors.Wrap(err, "Fetch operation failed")
+	}
+	if res.StatusCode != 200 {
+		return "", errors.Wrapf(err, "Server did not respond successfully - status code %d", res.StatusCode)
+	}
+	defer res.Body.Close()
+	decoder := charmap.Windows1251.NewDecoder()
+	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
+	if err != nil {
+		return "", errors.Wrap(err, "Error during responce reading")
+	}
+	return string(body), nil
+}
+
 func (scraper *scraper) FetchSong(ID string) *domain.Song {
 	return nil
 }
@@ -55,23 +75,13 @@ func (scraper *scraper) FetchSongs() (songs []domain.Song) {
 }
 
 func (scraper *scraper) FetchPreviews() []domain.Preview {
-	previews := make([]domain.Preview, 0)
-	url := fmt.Sprintf("%s/texts", scraper.baseURL)
-	header := http.Header{
-		"User-Agent": []string{userAgent},
-	}
-	res, err := scraper.client.Get(url, header)
+	log.Println("Previews fetching started")
+	html, err := scraper.fetch("/texts")
 	if err != nil {
-		log.Println(err)
-		return previews
+		log.Println("Error happend during previews fetching", err)
 	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
-	if err != nil {
-		log.Println(err)
-		return previews
-	}
-	return parser.ParsePreviews(string(body))
+	log.Println("Previews fetching successfully finished")
+	return parser.ParsePreviews(html)
 }
 
 // Create returns a scraper instance

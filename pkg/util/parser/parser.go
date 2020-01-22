@@ -25,7 +25,7 @@ func substringAfterLast(s, substr string) string {
 func parseHTML(html string) *goquery.Document {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
-		log.Fatal("Error happend during html parsing", err)
+		log.Panic("Error happend during html parsing", err)
 	}
 	return document
 }

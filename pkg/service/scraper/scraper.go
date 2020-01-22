@@ -15,6 +15,7 @@ import (
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/domain"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/validation"
 )
 
 // RetryProperties represents a retry properties structure
@@ -74,6 +75,9 @@ func (scraper *scraper) FetchSong(ID string) *domain.Song {
 		log.Println(err)
 	}
 	song := parser.ParseSong(html)
+	if !validation.Validate(song) {
+		return nil
+	}
 	log.Printf(`Successfully fetched song with id %s and title "%s"`, ID, song.Title)
 	return song
 }
@@ -84,7 +88,9 @@ func (scraper *scraper) FetchSongs() []domain.Song {
 	songs := make([]domain.Song, 0)
 	for _, preview := range previews {
 		song := scraper.FetchSong(preview.ID)
-		songs = append(songs, *song)
+		if song != nil {
+			songs = append(songs, *song)
+		}
 	}
 	log.Println("Songs fetching successfully finished")
 	return songs
@@ -93,11 +99,16 @@ func (scraper *scraper) FetchSongs() []domain.Song {
 func (scraper *scraper) FetchPreviews() []domain.Preview {
 	log.Println("Previews fetching started")
 	html, err := scraper.fetch("texts")
+	previews := make([]domain.Preview, 0)
 	if err != nil {
 		log.Println("Error happend during previews fetching", err)
-		return make([]domain.Preview, 0)
+		return previews
 	}
-	previews := parser.ParsePreviews(html)
+	for _, preview := range parser.ParsePreviews(html) {
+		if validation.Validate(preview) {
+			previews = append(previews, preview)
+		}
+	}
 	log.Println("Previews fetching successfully finished")
 	return previews
 }

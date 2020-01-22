@@ -12,8 +12,8 @@ func main() {
 		BaseURL: "http://www.gr-oborona.ru",
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		previews := s.FetchPreviews()
-		bytes, _ := json.Marshal(previews)
+		songs := s.FetchSongs()
+		bytes, _ := json.Marshal(songs)
 		w.Write(bytes)
 		w.WriteHeader(200)
 	})

@@ -43,8 +43,8 @@ type scraper struct {
 	client  *httpclient.Client
 }
 
-func (scraper *scraper) fetch(path string) (string, error) {
-	url := fmt.Sprintf("%s/%s", scraper.baseURL, path)
+func (scraper *scraper) fetch(path string, args ...interface{}) (string, error) {
+	url := fmt.Sprintf("%s/%s", scraper.baseURL, fmt.Sprintf(path, args...))
 	header := http.Header{
 		"User-Agent": []string{
 			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
@@ -67,21 +67,39 @@ func (scraper *scraper) fetch(path string) (string, error) {
 }
 
 func (scraper *scraper) FetchSong(ID string) *domain.Song {
-	return nil
+	log.Printf("Fetching song with id %s", ID)
+	html, err := scraper.fetch("text_print.php?area=go_texts&id=%s", ID)
+	if err != nil {
+		log.Printf("Error happend during fetching song with id %s", ID)
+		log.Println(err)
+	}
+	song := parser.ParseSong(html)
+	log.Printf(`Successfully fetched song with id %s and title "%s"`, ID, song.Title)
+	return song
 }
 
-func (scraper *scraper) FetchSongs() (songs []domain.Song) {
-	return nil
+func (scraper *scraper) FetchSongs() []domain.Song {
+	log.Println("Songs fetching started")
+	previews := scraper.FetchPreviews()
+	songs := make([]domain.Song, 0)
+	for _, preview := range previews {
+		song := scraper.FetchSong(preview.ID)
+		songs = append(songs, *song)
+	}
+	log.Println("Songs fetching successfully finished")
+	return songs
 }
 
 func (scraper *scraper) FetchPreviews() []domain.Preview {
 	log.Println("Previews fetching started")
-	html, err := scraper.fetch("/texts")
+	html, err := scraper.fetch("texts")
 	if err != nil {
 		log.Println("Error happend during previews fetching", err)
+		return make([]domain.Preview, 0)
 	}
+	previews := parser.ParsePreviews(html)
 	log.Println("Previews fetching successfully finished")
-	return parser.ParsePreviews(html)
+	return previews
 }
 
 // Create returns a scraper instance

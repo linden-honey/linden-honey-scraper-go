@@ -5,19 +5,30 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/gojektech/heimdall"
+
+	"github.com/gojektech/heimdall/httpclient"
 
 	"github.com/linden-honey/linden-honey-scraper-go/internal/util/parser"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/domain"
 )
 
+const userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"
+
 // RetryProperties represents a retry properties structure
 type RetryProperties struct {
+	Retries    int
+	Factor     float64
+	MinTimeout time.Duration
+	MaxTimeout time.Duration
 }
 
 // Properties represents a scraper properties structure
 type Properties struct {
 	BaseURL         string
-	RetryProperties *RetryProperties
+	RetryProperties RetryProperties
 }
 
 // Scraper represents a scraper interface
@@ -28,7 +39,8 @@ type Scraper interface {
 }
 
 type scraper struct {
-	Properties *Properties
+	baseURL string
+	client  *httpclient.Client
 }
 
 func (scraper *scraper) FetchSong(ID string) *domain.Song {
@@ -41,32 +53,40 @@ func (scraper *scraper) FetchSongs() (songs []domain.Song) {
 
 func (scraper *scraper) FetchPreviews() []domain.Preview {
 	previews := make([]domain.Preview, 0)
-	url := fmt.Sprintf("%s/texts", scraper.Properties.BaseURL)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Println(err)
-		return previews
+	url := fmt.Sprintf("%s/texts", scraper.baseURL)
+	header := http.Header{
+		"User-Agent": []string{userAgent},
 	}
-	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36")
-	res, err := http.DefaultClient.Do(req)
+	res, err := scraper.client.Get(url, header)
 	if err != nil {
 		log.Println(err)
 		return previews
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
-	stringBody := string(body)
-	log.Println(stringBody)
 	if err != nil {
 		log.Println(err)
 		return previews
 	}
-	return parser.ParsePreviews(stringBody)
+	return parser.ParsePreviews(string(body)) // TODO use reader in parser
 }
 
 // Create returns a scraper instance
 func Create(properties *Properties) Scraper {
 	return &scraper{
-		Properties: properties,
+		baseURL: properties.BaseURL,
+		client: httpclient.NewClient(
+			httpclient.WithRetryCount(properties.RetryProperties.Retries),
+			httpclient.WithRetrier(
+				heimdall.NewRetrier(
+					heimdall.NewExponentialBackoff(
+						properties.RetryProperties.MinTimeout,
+						properties.RetryProperties.MaxTimeout,
+						properties.RetryProperties.Factor,
+						time.Second,
+					),
+				),
+			),
+		),
 	}
 }

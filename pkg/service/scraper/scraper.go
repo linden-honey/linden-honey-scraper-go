@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -28,8 +29,8 @@ type RetryProperties struct {
 
 // Properties represents a scraper properties structure
 type Properties struct {
-	BaseURL         string
-	RetryProperties RetryProperties
+	BaseURL string
+	Retry   RetryProperties
 }
 
 // Scraper represents a scraper interface
@@ -85,13 +86,19 @@ func (scraper *scraper) FetchSong(ID string) *domain.Song {
 func (scraper *scraper) FetchSongs() []domain.Song {
 	log.Println("Songs fetching started")
 	previews := scraper.FetchPreviews()
+	var wg sync.WaitGroup
 	songs := make([]domain.Song, 0)
-	for _, preview := range previews {
-		song := scraper.FetchSong(preview.ID)
-		if song != nil {
-			songs = append(songs, *song)
-		}
+	for _, p := range previews {
+		wg.Add(1)
+		go func(preview domain.Preview) {
+			defer wg.Done()
+			song := scraper.FetchSong(preview.ID)
+			if song != nil {
+				songs = append(songs, *song)
+			}
+		}(p)
 	}
+	wg.Wait()
 	log.Println("Songs fetching successfully finished")
 	return songs
 }
@@ -118,13 +125,13 @@ func Create(properties *Properties) Scraper {
 	return &scraper{
 		baseURL: properties.BaseURL,
 		client: httpclient.NewClient(
-			httpclient.WithRetryCount(properties.RetryProperties.Retries),
+			httpclient.WithRetryCount(properties.Retry.Retries),
 			httpclient.WithRetrier(
 				heimdall.NewRetrier(
 					heimdall.NewExponentialBackoff(
-						properties.RetryProperties.MinTimeout,
-						properties.RetryProperties.MaxTimeout,
-						properties.RetryProperties.Factor,
+						properties.Retry.MinTimeout,
+						properties.Retry.MaxTimeout,
+						properties.Retry.Factor,
 						time.Second,
 					),
 				),

@@ -71,11 +71,19 @@ func (scraper *scraper) fetch(path string, args ...interface{}) (string, error) 
 func (scraper *scraper) FetchSong(ID string) *domain.Song {
 	log.Printf("Fetching song with id %s", ID)
 	html, err := scraper.fetch("text_print.php?area=go_texts&id=%s", ID)
-	if err != nil {
+	logError := func(e error) {
 		log.Printf("Error happend during fetching song with id %s", ID)
 		log.Println(err)
 	}
-	song := parser.ParseSong(html)
+	if err != nil {
+		logError(err)
+		return nil
+	}
+	song, err := parser.ParseSong(html)
+	if err != nil {
+		logError(err)
+		return nil
+	}
 	if !validation.Validate(song) {
 		return nil
 	}

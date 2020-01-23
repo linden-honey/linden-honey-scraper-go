@@ -1,11 +1,12 @@
 package parser
 
 import (
+	"log"
 	"regexp"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/domain"
+	"github.com/pkg/errors"
 
-	"log"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -22,68 +23,88 @@ func substringAfterLast(s, substr string) string {
 	return s[startIndex+len(substr):]
 }
 
-func parseHTML(html string) *goquery.Document {
+func parseHTML(html string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
-		log.Panic("Error happend during html parsing", err)
+		return nil, errors.Wrap(err, "Error happend during html parsing")
 	}
-	return document
+	return document, err
 }
 
 // ParseQuote parses html and returns a quote
-func ParseQuote(html string) *domain.Quote {
-	document := parseHTML(html)
+func ParseQuote(html string) (*domain.Quote, error) {
+	document, err := parseHTML(html)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error happend during quote parsing")
+	}
 	re := regexp.MustCompile(`\s+`)
 	phrase := re.ReplaceAllLiteralString(strings.TrimSpace(document.Text()), " ")
-	return &domain.Quote{
+	quote := &domain.Quote{
 		Phrase: phrase,
 	}
+	return quote, nil
 }
 
 // ParseVerse parses html and returns a verse
-func ParseVerse(html string) *domain.Verse {
+func ParseVerse(html string) (*domain.Verse, error) {
 	quotes := make([]domain.Quote, 0)
 	for _, text := range strings.Split(html, "<br/>") {
-		quote := ParseQuote(text)
-		if len(quote.Phrase) != 0 {
+		quote, err := ParseQuote(text)
+		if err != nil {
+			log.Println("Error happend during verse parsing", err)
+		} else {
 			quotes = append(quotes, *quote)
 		}
 	}
-	return &domain.Verse{
+	verse := &domain.Verse{
 		Quotes: quotes,
 	}
+	return verse, nil
 }
 
 func parseLyrics(html string) []domain.Verse {
 	verses := make([]domain.Verse, 0)
 	re := regexp.MustCompile(`(?:<br/>\s*){2,}`)
 	for _, verseHTML := range re.Split(html, -1) {
-		verse := ParseVerse(verseHTML)
+		verse, err := ParseVerse(verseHTML)
+		if err != nil {
+			log.Println("Error happend during lyrics parsing", err)
+		} else {
+			verses = append(verses, *verse)
+		}
 		verses = append(verses, *verse)
 	}
 	return verses
 }
 
 // ParseSong parses html and returns a song
-func ParseSong(html string) *domain.Song {
-	document := parseHTML(html)
+func ParseSong(html string) (*domain.Song, error) {
+	document, err := parseHTML(html)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error happend during song parsing")
+	}
 	title := document.Find("h2").Text()
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
 	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
 	lyricsHTML, _ := document.Find("p:last-of-type").Html()
 	verses := parseLyrics(lyricsHTML)
-	return &domain.Song{
+	song := &domain.Song{
 		Title:  title,
 		Author: author,
 		Album:  album,
 		Verses: verses,
 	}
+	return song, nil
 }
 
 // ParsePreviews parses html and returns a song
 func ParsePreviews(html string) []domain.Preview {
-	document := parseHTML(html)
 	previews := make([]domain.Preview, 0)
+	document, err := parseHTML(html)
+	if err != nil {
+		log.Println("Error happend during previews parsing", err)
+		return previews
+	}
 	document.Find("#abc_list a").Each(func(_ int, link *goquery.Selection) {
 		path, pathExists := link.Attr("href")
 		if pathExists {

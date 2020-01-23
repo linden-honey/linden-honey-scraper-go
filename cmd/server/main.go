@@ -1,14 +1,32 @@
 package main
 
 import (
-	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/controller"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
 )
 
 func main() {
+	// Initialize root router
+	rootRouter := mux.
+		NewRouter().
+		StrictSlash(true)
+
+	// Initialize api router
+	apiRouter := rootRouter.
+		PathPrefix("/api").
+		Subrouter()
+
+	// Initialize song router
+	songRouter := apiRouter.
+		PathPrefix("/songs").
+		Subrouter()
+
+	//Declare song routes
 	s := scraper.Create(&scraper.Properties{
 		BaseURL: "http://www.gr-oborona.ru",
 		Retry: scraper.RetryProperties{
@@ -18,11 +36,26 @@ func main() {
 			MaxTimeout: time.Second * 6,
 		},
 	})
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		songs := s.FetchSongs()
-		bytes, _ := json.Marshal(songs)
-		w.Write(bytes)
-		w.WriteHeader(200)
-	})
-	http.ListenAndServe(":8080", nil)
+	songController := controller.SongController{
+		Scraper: &s,
+	}
+	songRouter.
+		Path("/").
+		Methods("GET").
+		Queries("projection", "preview").
+		HandlerFunc(songController.GetPreviews).
+		Name("GetPreviews")
+	songRouter.
+		Path("/").
+		Methods("GET").
+		HandlerFunc(songController.GetSongs).
+		Name("GetSongs")
+	songRouter.
+		Path("/{songId}").
+		Methods("GET").
+		HandlerFunc(songController.GetSong).
+		Name("GetSong")
+
+	log.Printf("Application is started on %d port!", 8080)
+	log.Fatal(http.ListenAndServe(":8080", rootRouter))
 }

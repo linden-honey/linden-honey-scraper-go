@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"sync"
 	"time"
 
@@ -107,6 +108,9 @@ func (scraper *scraper) FetchSongs() []domain.Song {
 		}(p)
 	}
 	wg.Wait()
+	sort.SliceStable(songs, func(i, j int) bool {
+		return songs[i].Title < songs[j].Title
+	})
 	log.Println("Songs fetching successfully finished")
 	return songs
 }
@@ -124,6 +128,9 @@ func (scraper *scraper) FetchPreviews() []domain.Preview {
 			previews = append(previews, preview)
 		}
 	}
+	sort.SliceStable(previews, func(i, j int) bool {
+		return previews[i].Title < previews[j].Title
+	})
 	log.Println("Previews fetching successfully finished")
 	return previews
 }

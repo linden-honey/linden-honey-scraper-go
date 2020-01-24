@@ -37,7 +37,7 @@ func main() {
 		},
 	})
 	songController := controller.SongController{
-		Scraper: &s,
+		Scraper: s,
 	}
 	songRouter.
 		Path("/").

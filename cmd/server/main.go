@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	swagger "github.com/swaggo/http-swagger"
+
+	"github.com/linden-honey/linden-honey-scraper-go/docs"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/controller"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
 )
@@ -21,12 +24,7 @@ func main() {
 		PathPrefix("/api").
 		Subrouter()
 
-	// Initialize song router
-	songRouter := apiRouter.
-		PathPrefix("/songs").
-		Subrouter()
-
-	//Declare song routes
+	// Initialize song controller
 	s := scraper.Create(&scraper.Properties{
 		BaseURL: "http://www.gr-oborona.ru",
 		Retry: scraper.RetryProperties{
@@ -36,25 +34,56 @@ func main() {
 			MaxTimeout: time.Second * 6,
 		},
 	})
-	songController := controller.SongController{
+	songController := &controller.SongController{
 		Scraper: s,
 	}
+
+	// Initialize song router
+	songRouter := apiRouter.
+		PathPrefix("/songs").
+		Subrouter()
+
+	// Declare song routes
 	songRouter.
 		Path("/").
 		Methods("GET").
 		Queries("projection", "preview").
 		HandlerFunc(songController.GetPreviews).
-		Name("GetPreviews")
+		Name("getPreviews")
 	songRouter.
 		Path("/").
 		Methods("GET").
 		HandlerFunc(songController.GetSongs).
-		Name("GetSongs")
+		Name("getSongs")
 	songRouter.
 		Path("/{songId}").
 		Methods("GET").
 		HandlerFunc(songController.GetSong).
-		Name("GetSong")
+		Name("getSong")
+
+	// Initialize docs controller
+	docsController := &controller.DocsController{
+		Spec: docs.ReadSpec(),
+	}
+
+	// Initialize docs router
+	docsRouter := rootRouter.
+		PathPrefix("/").
+		Subrouter()
+
+	//Declare docs routes
+	docsRouter.
+		Path("/api-docs").
+		Methods("GET").
+		HandlerFunc(docsController.GetSpec).
+		Name("getApiDocs")
+	docsRouter.
+		PathPrefix("/").
+		Methods("GET").
+		Handler(swagger.Handler(
+			swagger.URL("/api-docs"),
+		)).
+		Name("swagger")
 
 	log.Printf("Application is started on %d port!", 8080)
 	log.Fatal(http.ListenAndServe(":8080", rootRouter))

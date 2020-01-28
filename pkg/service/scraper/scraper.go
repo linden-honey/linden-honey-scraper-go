@@ -98,13 +98,13 @@ func (scraper *scraper) FetchSongs() []domain.Song {
 	songs := make([]domain.Song, 0)
 	for _, p := range previews {
 		wg.Add(1)
-		go func(preview domain.Preview) {
+		go func(preview domain.Preview, wg *sync.WaitGroup) {
 			defer wg.Done()
 			song := scraper.FetchSong(preview.ID)
 			if song != nil {
 				songs = append(songs, *song)
 			}
-		}(p)
+		}(p, &wg)
 	}
 	wg.Wait()
 	sort.SliceStable(songs, func(i, j int) bool {

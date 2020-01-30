@@ -1,4 +1,4 @@
-package docs
+package api
 
 import (
 	"io/ioutil"
@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ReadSpec return string with openapi specification
-func ReadSpec() string {
-	spec, err := ioutil.ReadFile("docs/openapi.json")
+// ReadSpec return specification data
+func ReadSpec(path string) string {
+	spec, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "Can't read openapi specification file"))
 	}

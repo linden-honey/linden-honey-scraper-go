@@ -8,9 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	swagger "github.com/swaggo/http-swagger"
 
-	"github.com/linden-honey/linden-honey-scraper-go/docs"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/controller"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/api"
 )
 
 func main() {
@@ -63,7 +63,7 @@ func main() {
 
 	// Initialize docs controller
 	docsController := &controller.DocsController{
-		Spec: docs.ReadSpec(),
+		Spec: api.ReadSpec("api/openapi-spec/openapi.json"),
 	}
 
 	// Initialize docs router

@@ -10,7 +10,7 @@ import (
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/controller"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/api"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/io"
 )
 
 func main() {
@@ -63,7 +63,7 @@ func main() {
 
 	// Initialize docs controller
 	docsController := &controller.DocsController{
-		Spec: api.ReadSpec("api/openapi-spec/openapi.json"),
+		Spec: io.MustReadContent("api/openapi-spec/openapi.json"),
 	}
 
 	// Initialize docs router

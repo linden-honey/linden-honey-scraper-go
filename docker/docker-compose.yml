@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  scraper:
+    image: lindenhoney/linden-honey-scraper-go:latest
+    build:
+      dockerfile: docker/Dockerfile
+      context: ../
+    ports:
+      - 8080:80
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

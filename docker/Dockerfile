@@ -18,7 +18,8 @@ LABEL \
 ARG WORK_DIR=/linden-honey
 WORKDIR $WORK_DIR
 
-ENV SERVER_PORT=80
+ENV SERVER_PORT=8080
+EXPOSE $SERVER_PORT
 
 COPY --from=builder /go/bin/server /bin/server
 COPY api/ ./api

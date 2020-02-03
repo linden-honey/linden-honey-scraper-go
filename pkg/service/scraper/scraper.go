@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"sync"
 	"time"
@@ -30,7 +31,7 @@ type RetryProperties struct {
 
 // Properties represents a scraper properties structure
 type Properties struct {
-	BaseURL string
+	BaseURL *url.URL
 	Retry   RetryProperties
 }
 
@@ -42,18 +43,21 @@ type Scraper interface {
 }
 
 type scraper struct {
-	baseURL string
+	baseURL *url.URL
 	client  *httpclient.Client
 }
 
 func (scraper *scraper) fetch(path string, args ...interface{}) (string, error) {
-	url := fmt.Sprintf("%s/%s", scraper.baseURL, fmt.Sprintf(path, args...))
+	url, err := scraper.baseURL.Parse(fmt.Sprintf(path, args...))
+	if err != nil {
+		return "", errors.Wrap(err, "Couldn't parse url")
+	}
 	header := http.Header{
 		"User-Agent": []string{
 			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
 		},
 	}
-	res, err := scraper.client.Get(url, header)
+	res, err := scraper.client.Get(url.String(), header)
 	if err != nil {
 		return "", errors.Wrap(err, "Fetch operation failed")
 	}

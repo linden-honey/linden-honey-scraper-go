@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -25,8 +26,9 @@ func main() {
 		Subrouter()
 
 	// Initialize song controller
+	url, _ := url.Parse("http://www.gr-oborona.ru")
 	s := scraper.Create(&scraper.Properties{
-		BaseURL: "http://www.gr-oborona.ru",
+		BaseURL: url,
 		Retry: scraper.RetryProperties{
 			Retries:    5,
 			Factor:     3,

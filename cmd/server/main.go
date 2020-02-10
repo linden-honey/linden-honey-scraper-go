@@ -27,7 +27,7 @@ func main() {
 
 	// Initialize song controller
 	url, _ := url.Parse("http://www.gr-oborona.ru")
-	s := scraper.Create(&scraper.Properties{
+	s := scraper.NewScraper(&scraper.Properties{
 		BaseURL: url,
 		Retry: scraper.RetryProperties{
 			Retries:    5,

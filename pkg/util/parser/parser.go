@@ -47,13 +47,13 @@ func ParseQuote(html string) (*domain.Quote, error) {
 
 // ParseVerse parses html and returns a verse
 func ParseVerse(html string) (*domain.Verse, error) {
-	quotes := make([]domain.Quote, 0)
+	quotes := make([]*domain.Quote, 0)
 	for _, text := range strings.Split(html, "<br/>") {
 		quote, err := ParseQuote(text)
 		if err != nil {
 			log.Println("Error happend during verse parsing", err)
 		} else {
-			quotes = append(quotes, *quote)
+			quotes = append(quotes, quote)
 		}
 	}
 	verse := &domain.Verse{
@@ -62,17 +62,16 @@ func ParseVerse(html string) (*domain.Verse, error) {
 	return verse, nil
 }
 
-func parseLyrics(html string) []domain.Verse {
-	verses := make([]domain.Verse, 0)
+func parseLyrics(html string) []*domain.Verse {
+	verses := make([]*domain.Verse, 0)
 	re := regexp.MustCompile(`(?:<br/>\s*){2,}`)
 	for _, verseHTML := range re.Split(html, -1) {
 		verse, err := ParseVerse(verseHTML)
 		if err != nil {
 			log.Println("Error happend during lyrics parsing", err)
 		} else {
-			verses = append(verses, *verse)
+			verses = append(verses, verse)
 		}
-		verses = append(verses, *verse)
 	}
 	return verses
 }
@@ -98,8 +97,8 @@ func ParseSong(html string) (*domain.Song, error) {
 }
 
 // ParsePreviews parses html and returns a song
-func ParsePreviews(html string) []domain.Preview {
-	previews := make([]domain.Preview, 0)
+func ParsePreviews(html string) []*domain.Preview {
+	previews := make([]*domain.Preview, 0)
 	document, err := parseHTML(html)
 	if err != nil {
 		log.Println("Error happend during previews parsing", err)
@@ -113,7 +112,7 @@ func ParsePreviews(html string) []domain.Preview {
 			if startIndex != -1 && endIndex != -1 {
 				id := path[startIndex+1 : endIndex]
 				title := link.Text()
-				previews = append(previews, domain.Preview{
+				previews = append(previews, &domain.Preview{
 					ID:    id,
 					Title: title,
 				})

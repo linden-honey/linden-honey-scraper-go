@@ -38,8 +38,8 @@ type Properties struct {
 // Scraper represents a scraper interface
 type Scraper interface {
 	FetchSong(ID string) *domain.Song
-	FetchSongs() []domain.Song
-	FetchPreviews() []domain.Preview
+	FetchSongs() []*domain.Song
+	FetchPreviews() []*domain.Preview
 }
 
 type scraper struct {
@@ -95,18 +95,18 @@ func (scraper *scraper) FetchSong(ID string) *domain.Song {
 	return song
 }
 
-func (scraper *scraper) FetchSongs() []domain.Song {
+func (scraper *scraper) FetchSongs() []*domain.Song {
 	log.Println("Songs fetching started")
 	previews := scraper.FetchPreviews()
 	var wg sync.WaitGroup
-	songs := make([]domain.Song, 0)
+	songs := make([]*domain.Song, 0)
 	for _, p := range previews {
 		wg.Add(1)
-		go func(preview domain.Preview, wg *sync.WaitGroup) {
+		go func(preview *domain.Preview, wg *sync.WaitGroup) {
 			defer wg.Done()
 			song := scraper.FetchSong(preview.ID)
 			if song != nil {
-				songs = append(songs, *song)
+				songs = append(songs, song)
 			}
 		}(p, &wg)
 	}
@@ -118,10 +118,10 @@ func (scraper *scraper) FetchSongs() []domain.Song {
 	return songs
 }
 
-func (scraper *scraper) FetchPreviews() []domain.Preview {
+func (scraper *scraper) FetchPreviews() []*domain.Preview {
 	log.Println("Previews fetching started")
 	html, err := scraper.fetch("texts")
-	previews := make([]domain.Preview, 0)
+	previews := make([]*domain.Preview, 0)
 	if err != nil {
 		log.Println(errors.Wrap(err, "Error happend during previews fetching"))
 		return previews
@@ -138,8 +138,8 @@ func (scraper *scraper) FetchPreviews() []domain.Preview {
 	return previews
 }
 
-// Create returns a scraper instance
-func Create(properties *Properties) Scraper {
+// NewScraper returns a new scraper instance
+func NewScraper(properties *Properties) Scraper {
 	return &scraper{
 		baseURL: properties.BaseURL,
 		client: httpclient.NewClient(

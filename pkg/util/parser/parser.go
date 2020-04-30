@@ -26,7 +26,7 @@ func substringAfterLast(s, substr string) string {
 func parseHTML(html string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
-		return nil, errors.Wrap(err, "Error happend during html parsing")
+		return nil, errors.Wrap(err, "Error happened during html parsing")
 	}
 	return document, err
 }
@@ -35,7 +35,7 @@ func parseHTML(html string) (*goquery.Document, error) {
 func ParseQuote(html string) (*domain.Quote, error) {
 	document, err := parseHTML(html)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error happend during quote parsing")
+		return nil, errors.Wrap(err, "Error happened during quote parsing")
 	}
 	re := regexp.MustCompile(`\s+`)
 	phrase := re.ReplaceAllLiteralString(strings.TrimSpace(document.Text()), " ")
@@ -51,7 +51,7 @@ func ParseVerse(html string) (*domain.Verse, error) {
 	for _, text := range strings.Split(html, "<br/>") {
 		quote, err := ParseQuote(text)
 		if err != nil {
-			log.Println("Error happend during verse parsing", err)
+			log.Println("Error happened during verse parsing", err)
 		} else {
 			quotes = append(quotes, quote)
 		}
@@ -68,7 +68,7 @@ func parseLyrics(html string) []*domain.Verse {
 	for _, verseHTML := range re.Split(html, -1) {
 		verse, err := ParseVerse(verseHTML)
 		if err != nil {
-			log.Println("Error happend during lyrics parsing", err)
+			log.Println("Error happened during lyrics parsing", err)
 		} else {
 			verses = append(verses, verse)
 		}
@@ -80,7 +80,7 @@ func parseLyrics(html string) []*domain.Verse {
 func ParseSong(html string) (*domain.Song, error) {
 	document, err := parseHTML(html)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error happend during song parsing")
+		return nil, errors.Wrap(err, "Error happened during song parsing")
 	}
 	title := document.Find("h2").Text()
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
@@ -101,7 +101,7 @@ func ParsePreviews(html string) []*domain.Preview {
 	previews := make([]*domain.Preview, 0)
 	document, err := parseHTML(html)
 	if err != nil {
-		log.Println("Error happend during previews parsing", err)
+		log.Println("Error happened during previews parsing", err)
 		return previews
 	}
 	document.Find("#abc_list a").Each(func(_ int, link *goquery.Selection) {

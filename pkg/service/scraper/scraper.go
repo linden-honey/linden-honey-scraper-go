@@ -78,7 +78,7 @@ func (scraper *scraper) FetchSong(ID string) *domain.Song {
 	log.Printf("Fetching song with id %s", ID)
 	html, err := scraper.fetch("text_print.php?area=go_texts&id=%s", ID)
 	logError := func(e error) {
-		log.Println(errors.Wrapf(err, "Error happend during fetching song with id %s", ID))
+		log.Println(errors.Wrapf(err, "Error happened during fetching song with id %s", ID))
 	}
 	if err != nil {
 		logError(err)
@@ -127,7 +127,7 @@ func (scraper *scraper) FetchPreviews() []*domain.Preview {
 	html, err := scraper.fetch("texts")
 	previews := make([]*domain.Preview, 0)
 	if err != nil {
-		log.Println(errors.Wrap(err, "Error happend during previews fetching"))
+		log.Println(errors.Wrap(err, "Error happened during previews fetching"))
 		return previews
 	}
 	for _, preview := range parser.ParsePreviews(html) {

@@ -12,7 +12,7 @@ func writeJSON(data interface{}, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
-		err := errors.Wrap(err, "Error happend during data marshalling")
+		err := errors.Wrap(err, "Error happened during data marshalling")
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(([]byte)(err.Error()))

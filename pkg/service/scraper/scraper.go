@@ -100,16 +100,19 @@ func (scraper *scraper) FetchSongs() []*domain.Song {
 	log.Println("Songs fetching started")
 	previews := scraper.FetchPreviews()
 	var wg sync.WaitGroup
+	var m sync.Mutex
 	songs := make([]*domain.Song, 0)
 	for _, p := range previews {
 		wg.Add(1)
-		go func(preview *domain.Preview, wg *sync.WaitGroup) {
+		go func() {
 			defer wg.Done()
-			song := scraper.FetchSong(preview.ID)
+			song := scraper.FetchSong(p.ID)
 			if song != nil {
+				m.Lock()
 				songs = append(songs, song)
+				m.Unlock()
 			}
-		}(p, &wg)
+		}()
 	}
 	wg.Wait()
 	sort.SliceStable(songs, func(i, j int) bool {

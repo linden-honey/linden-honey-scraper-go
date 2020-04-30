@@ -10,8 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"golang.org/x/text/encoding/charmap"
+
+	"github.com/pkg/errors"
 
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
@@ -48,7 +49,7 @@ type scraper struct {
 }
 
 func (scraper *scraper) fetch(path string, args ...interface{}) (string, error) {
-	url, err := scraper.baseURL.Parse(fmt.Sprintf(path, args...))
+	fetchURL, err := scraper.baseURL.Parse(fmt.Sprintf(path, args...))
 	if err != nil {
 		return "", errors.Wrap(err, "Couldn't parse url")
 	}
@@ -57,7 +58,7 @@ func (scraper *scraper) fetch(path string, args ...interface{}) (string, error) 
 			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
 		},
 	}
-	res, err := scraper.client.Get(url.String(), header)
+	res, err := scraper.client.Get(fetchURL.String(), header)
 	if err != nil {
 		return "", errors.Wrap(err, "Fetch operation failed")
 	}

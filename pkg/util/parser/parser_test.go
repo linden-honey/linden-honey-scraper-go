@@ -13,7 +13,7 @@ func TestParsePreviews(t *testing.T) {
 	<li><a href="/texts/1056901056.html">Всё как у людей</a></li>
 	</ul>
 	`
-	previews := ParsePreviews(html)
+	previews, _ := ParsePreviews(html)
 	t.Log(previews)
 	if len(previews) != 2 {
 		t.Error("Parsing previews failed")

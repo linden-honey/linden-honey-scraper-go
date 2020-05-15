@@ -8,16 +8,26 @@ import (
 	"github.com/pkg/errors"
 )
 
-func writeJSON(data interface{}, w http.ResponseWriter, r *http.Request) {
+func WriteJSON(data interface{}, status int, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		err := errors.Wrap(err, "Error happened during data marshalling")
 		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(([]byte)(err.Error()))
+		WriteError(err, status, w)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(jsonBytes)
+		_, err = w.Write(jsonBytes)
+		if err != nil {
+			log.Println(errors.Wrap(err, "Error happened during response writing"))
+		}
+	}
+}
+
+func WriteError(err error, status int, w http.ResponseWriter) {
+	w.WriteHeader(status)
+	_, err = w.Write(([]byte)(err.Error()))
+	if err != nil {
+		log.Println(errors.Wrap(err, "Error happened during response writing"))
 	}
 }

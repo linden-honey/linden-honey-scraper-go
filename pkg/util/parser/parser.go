@@ -3,13 +3,12 @@ package parser
 import (
 	"log"
 	"regexp"
-
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/domain"
-	"github.com/pkg/errors"
-
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
+
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/domain"
 )
 
 func substringAfterLast(s, substr string) string {
@@ -26,7 +25,7 @@ func substringAfterLast(s, substr string) string {
 func parseHTML(html string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
-		return nil, errors.Wrap(err, "Error happened during html parsing")
+		return nil, errors.Wrap(err, "Error happened during document creation")
 	}
 	return document, err
 }
@@ -80,7 +79,7 @@ func parseLyrics(html string) []*domain.Verse {
 func ParseSong(html string) (*domain.Song, error) {
 	document, err := parseHTML(html)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error happened during song parsing")
+		return nil, errors.Wrap(err, "Error happened during html parsing")
 	}
 	title := document.Find("h2").Text()
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
@@ -97,13 +96,12 @@ func ParseSong(html string) (*domain.Song, error) {
 }
 
 // ParsePreviews parses html and returns a song
-func ParsePreviews(html string) []*domain.Preview {
-	previews := make([]*domain.Preview, 0)
+func ParsePreviews(html string) ([]*domain.Preview, error) {
 	document, err := parseHTML(html)
 	if err != nil {
-		log.Println("Error happened during previews parsing", err)
-		return previews
+		return nil, errors.Wrap(err, "Error happened during html parsing")
 	}
+	previews := make([]*domain.Preview, 0)
 	document.Find("#abc_list a").Each(func(_ int, link *goquery.Selection) {
 		path, pathExists := link.Attr("href")
 		if pathExists {
@@ -119,5 +117,5 @@ func ParsePreviews(html string) []*domain.Preview {
 			}
 		}
 	})
-	return previews
+	return previews, nil
 }

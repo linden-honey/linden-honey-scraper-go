@@ -13,23 +13,30 @@ type SongController struct {
 }
 
 func (c *SongController) GetSongs(w http.ResponseWriter, r *http.Request) {
-	songs := c.Scraper.FetchSongs()
-	writeJSON(songs, w, r)
+	songs, err := c.Scraper.FetchSongs()
+	if err != nil {
+		WriteError(err, http.StatusInternalServerError, w)
+	} else {
+		WriteJSON(songs, http.StatusOK, w)
+	}
 }
 
 func (c *SongController) GetSong(w http.ResponseWriter, r *http.Request) {
 	pathVariables := mux.Vars(r)
 	songID := pathVariables["songId"]
-	song := c.Scraper.FetchSong(songID)
-	if song != nil {
-		writeJSON(song, w, r)
+	song, err := c.Scraper.FetchSong(songID)
+	if err != nil {
+		WriteError(err, http.StatusInternalServerError, w)
 	} else {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write(([]byte)("Song not found"))
+		WriteJSON(song, http.StatusOK, w)
 	}
 }
 
 func (c *SongController) GetPreviews(w http.ResponseWriter, r *http.Request) {
-	previews := c.Scraper.FetchPreviews()
-	writeJSON(previews, w, r)
+	previews, err := c.Scraper.FetchPreviews()
+	if err != nil {
+		WriteError(err, http.StatusInternalServerError, w)
+	} else {
+		WriteJSON(previews, http.StatusOK, w)
+	}
 }

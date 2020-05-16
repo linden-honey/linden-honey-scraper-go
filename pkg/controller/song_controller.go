@@ -12,6 +12,12 @@ type SongController struct {
 	Scraper scraper.Scraper
 }
 
+func NewSongController(scraper scraper.Scraper) *SongController {
+	return &SongController{
+		Scraper: scraper,
+	}
+}
+
 func (c *SongController) GetSongs(w http.ResponseWriter, r *http.Request) {
 	songs, err := c.Scraper.FetchSongs()
 	if err != nil {

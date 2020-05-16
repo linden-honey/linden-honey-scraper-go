@@ -26,9 +26,9 @@ func main() {
 		Subrouter()
 
 	// Initialize song controller
-	url, _ := url.Parse("http://www.gr-oborona.ru")
+	u, _ := url.Parse("http://www.gr-oborona.ru")
 	s := scraper.NewScraper(&scraper.Properties{
-		BaseURL: url,
+		BaseURL: u,
 		Retry: scraper.RetryProperties{
 			Retries:    5,
 			Factor:     3,
@@ -36,9 +36,7 @@ func main() {
 			MaxTimeout: time.Second * 6,
 		},
 	})
-	songController := &controller.SongController{
-		Scraper: s,
-	}
+	songController := controller.NewSongController(s)
 
 	// Initialize song router
 	songRouter := apiRouter.
@@ -64,10 +62,8 @@ func main() {
 		Name("getSong")
 
 	// Initialize docs controller
-	docsController := &controller.DocsController{
-		Spec: io.MustReadContent("api/openapi-spec/openapi.json"),
-	}
-
+	spec := io.MustReadContent("api/openapi-spec/openapi.json")
+	docsController := controller.NewDocsController(spec)
 	// Initialize docs router
 	docsRouter := rootRouter.
 		PathPrefix("/").

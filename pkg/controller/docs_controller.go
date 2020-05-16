@@ -4,10 +4,16 @@ import (
 	"net/http"
 )
 
-type DocsController struct {
+type docsController struct {
 	Spec string
 }
 
-func (c *DocsController) GetSpec(w http.ResponseWriter, _ *http.Request) {
+func NewDocsController(spec string) *docsController {
+	return &docsController{
+		Spec: spec,
+	}
+}
+
+func (c *docsController) GetSpec(w http.ResponseWriter, _ *http.Request) {
 	WriteRawJSON([]byte(c.Spec), http.StatusOK, w)
 }

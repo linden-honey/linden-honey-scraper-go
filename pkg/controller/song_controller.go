@@ -4,45 +4,60 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
 )
 
-type SongController struct {
-	Scraper scraper.Scraper
+// songController represents the song controller implementation
+type songController struct {
+	logger  *log.Logger
+	scraper scraper.Scraper
 }
 
-func NewSongController(scraper scraper.Scraper) *SongController {
-	return &SongController{
-		Scraper: scraper,
+// NewSongController returns a pointer to the new instance of songController
+func NewSongController(logger *log.Logger, scraper scraper.Scraper) *songController {
+	return &songController{
+		logger:  logger,
+		scraper: scraper,
 	}
 }
 
-func (c *SongController) GetSongs(w http.ResponseWriter, r *http.Request) {
-	songs, err := c.Scraper.FetchSongs()
+func (c *songController) safeWrite(supplier func() (interface{}, error), w http.ResponseWriter) {
+	data, err := supplier()
 	if err != nil {
 		WriteError(err, http.StatusInternalServerError, w)
 	} else {
-		WriteJSON(songs, http.StatusOK, w)
+		err = WriteJSON(data, http.StatusOK, w)
+		if err != nil {
+			c.logger.Error(err)
+			WriteError(err, http.StatusInternalServerError, w)
+		}
 	}
 }
 
-func (c *SongController) GetSong(w http.ResponseWriter, r *http.Request) {
+// GetSong handles getting song via http
+func (c *songController) GetSong(w http.ResponseWriter, r *http.Request) {
 	pathVariables := mux.Vars(r)
 	songID := pathVariables["songId"]
-	song, err := c.Scraper.FetchSong(songID)
-	if err != nil {
-		WriteError(err, http.StatusInternalServerError, w)
-	} else {
-		WriteJSON(song, http.StatusOK, w)
+	supplier := func() (interface{}, error) {
+		return c.scraper.GetSong(songID)
 	}
+	c.safeWrite(supplier, w)
 }
 
-func (c *SongController) GetPreviews(w http.ResponseWriter, r *http.Request) {
-	previews, err := c.Scraper.FetchPreviews()
-	if err != nil {
-		WriteError(err, http.StatusInternalServerError, w)
-	} else {
-		WriteJSON(previews, http.StatusOK, w)
+// GetSongs handles getting songs via http
+func (c *songController) GetSongs(w http.ResponseWriter, r *http.Request) {
+	supplier := func() (interface{}, error) {
+		return c.scraper.GetSongs()
 	}
+	c.safeWrite(supplier, w)
+}
+
+// GetPreviews handles getting previews via http
+func (c *songController) GetPreviews(w http.ResponseWriter, r *http.Request) {
+	supplier := func() (interface{}, error) {
+		return c.scraper.GetPreviews()
+	}
+	c.safeWrite(supplier, w)
 }

@@ -1,49 +1,77 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"time"
 
+	"golang.org/x/text/encoding/charmap"
+
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	swagger "github.com/swaggo/http-swagger"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/controller"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/parser"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/validator"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/io"
 )
 
+var (
+	logger = log.StandardLogger()
+)
+
 func main() {
-	// Initialize root router
+	// initialize root router
 	rootRouter := mux.
 		NewRouter().
 		StrictSlash(true)
 
-	// Initialize api router
+	// initialize api router
 	apiRouter := rootRouter.
 		PathPrefix("/api").
 		Subrouter()
 
-	// Initialize song controller
-	u, _ := url.Parse("http://www.gr-oborona.ru")
-	s := scraper.NewScraper(&scraper.Properties{
-		BaseURL: u,
-		Retry: scraper.RetryProperties{
-			Retries:    5,
-			Factor:     3,
-			MinTimeout: time.Second * 1,
-			MaxTimeout: time.Second * 6,
-		},
-	})
-	songController := controller.NewSongController(s)
+	//parse
+	u, err := url.Parse("http://www.gr-oborona.ru")
+	if err != nil {
+		logger.Fatal("Can't parse base URL", err)
+	}
 
-	// Initialize song router
+	// initialize scrapper
+	s := scraper.NewDefaultScraper(
+		logger,
+		fetcher.NewDefaultFetcherWithRetry(
+			logger,
+			&fetcher.Properties{
+				BaseURL:        u,
+				SourceEncoding: charmap.Windows1251,
+			},
+			&fetcher.RetryProperties{
+				Retries:    5,
+				Factor:     3,
+				MinTimeout: time.Second * 1,
+				MaxTimeout: time.Second * 6,
+			},
+		),
+		parser.NewDefaultParser(logger),
+		validator.NewDefaultValidator(logger),
+	)
+
+	// initialize song controller
+	songController := controller.NewSongController(
+		logger,
+		s,
+	)
+
+	// initialize song router
 	songRouter := apiRouter.
 		PathPrefix("/songs").
 		Subrouter()
 
-	// Declare song routes
+	// declare song routes
 	songRouter.
 		Path("/").
 		Methods("GET").
@@ -61,15 +89,19 @@ func main() {
 		HandlerFunc(songController.GetSong).
 		Name("getSong")
 
-	// Initialize docs controller
+	// initialize docs controller
 	spec := io.MustReadContent("api/openapi-spec/openapi.json")
-	docsController := controller.NewDocsController(spec)
-	// Initialize docs router
+	docsController := controller.NewDocsController(
+		logger,
+		spec,
+	)
+
+	// initialize docs router
 	docsRouter := rootRouter.
 		PathPrefix("/").
 		Subrouter()
 
-	//Declare docs routes
+	// declare docs routes
 	docsRouter.
 		Path("/api-docs").
 		Methods("GET").
@@ -83,6 +115,6 @@ func main() {
 		)).
 		Name("swagger")
 
-	log.Printf("Application is started on %d port!", 8080)
-	log.Fatal(http.ListenAndServe(":8080", rootRouter))
+	logger.Printf("Application is started on %d port!", 8080)
+	logger.Fatal(http.ListenAndServe(":8080", rootRouter))
 }

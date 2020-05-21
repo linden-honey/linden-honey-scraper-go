@@ -2,36 +2,34 @@ package controller
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/pkg/errors"
 )
 
-func WriteRawJSON(data []byte, status int, w http.ResponseWriter) {
+func WriteRawJSON(data []byte, status int, w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_, err := w.Write(data)
 	if err != nil {
-		log.Println(errors.Wrap(err, "Error happened during response writing"))
+		return errors.Wrap(err, "Error happened during response writing")
 	}
+	return nil
 }
 
-func WriteJSON(data interface{}, status int, w http.ResponseWriter) {
+func WriteJSON(data interface{}, status int, w http.ResponseWriter) error {
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
-		err := errors.Wrap(err, "Error happened during data marshalling")
-		log.Println(err)
-		WriteError(err, http.StatusInternalServerError, w)
-	} else {
-		WriteRawJSON(dataBytes, status, w)
+		return errors.Wrap(err, "Error happened during data marshalling")
 	}
+	err = WriteRawJSON(dataBytes, status, w)
+	if err != nil {
+		return errors.Wrap(err, "Error happened during raw json writing")
+	}
+	return nil
 }
 
 func WriteError(err error, status int, w http.ResponseWriter) {
 	w.WriteHeader(status)
-	_, err = w.Write(([]byte)(err.Error()))
-	if err != nil {
-		log.Println(errors.Wrap(err, "Error happened during response writing"))
-	}
+	_, _ = w.Write(([]byte)(err.Error()))
 }

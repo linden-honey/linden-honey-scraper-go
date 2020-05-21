@@ -1,16 +1,17 @@
 package parser
 
 import (
-	"log"
 	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/domain"
 )
 
+// substringAfterLast util function to get last substring after some inclusion
 func substringAfterLast(s, substr string) string {
 	if len(s) == 0 {
 		return s
@@ -22,7 +23,26 @@ func substringAfterLast(s, substr string) string {
 	return s[startIndex+len(substr):]
 }
 
-func parseHTML(html string) (*goquery.Document, error) {
+// Fetcher represents the fetcher interface
+type Parser interface {
+	ParseSong(html string) (*domain.Song, error)
+	ParsePreviews(html string) ([]*domain.Preview, error)
+}
+
+// defaultParser represents the default parser implementation
+type defaultParser struct {
+	logger *log.Logger
+}
+
+// NewDefaultParser returns a pointer to the new instance of defaultParser
+func NewDefaultParser(logger *log.Logger) *defaultParser {
+	return &defaultParser{
+		logger: logger,
+	}
+}
+
+// parseHTML parse html and returns a pointer to the Document instance
+func (p *defaultParser) parseHTML(html string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return nil, errors.Wrap(err, "Error happened during document creation")
@@ -30,9 +50,9 @@ func parseHTML(html string) (*goquery.Document, error) {
 	return document, err
 }
 
-// ParseQuote parses html and returns a quote
-func ParseQuote(html string) (*domain.Quote, error) {
-	document, err := parseHTML(html)
+// ParseQuote parses html and returns a pointer to the Quote instance
+func (p *defaultParser) ParseQuote(html string) (*domain.Quote, error) {
+	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error happened during quote parsing")
 	}
@@ -44,13 +64,13 @@ func ParseQuote(html string) (*domain.Quote, error) {
 	return quote, nil
 }
 
-// ParseVerse parses html and returns a verse
-func ParseVerse(html string) (*domain.Verse, error) {
+// ParseVerse parses html and returns a pointer to the Verse instance
+func (p *defaultParser) ParseVerse(html string) (*domain.Verse, error) {
 	quotes := make([]*domain.Quote, 0)
 	for _, text := range strings.Split(html, "<br/>") {
-		quote, err := ParseQuote(text)
+		quote, err := p.ParseQuote(text)
 		if err != nil {
-			log.Println("Error happened during verse parsing", err)
+			p.logger.Println("Error happened during quote parsing", err)
 		} else {
 			quotes = append(quotes, quote)
 		}
@@ -61,13 +81,14 @@ func ParseVerse(html string) (*domain.Verse, error) {
 	return verse, nil
 }
 
-func parseLyrics(html string) []*domain.Verse {
+// ParseVerse parses html and returns a slice of pointers of the Verse instances
+func (p *defaultParser) parseLyrics(html string) []*domain.Verse {
 	verses := make([]*domain.Verse, 0)
 	re := regexp.MustCompile(`(?:<br/>\s*){2,}`)
 	for _, verseHTML := range re.Split(html, -1) {
-		verse, err := ParseVerse(verseHTML)
+		verse, err := p.ParseVerse(verseHTML)
 		if err != nil {
-			log.Println("Error happened during lyrics parsing", err)
+			p.logger.Println("Error happened during lyrics parsing", err)
 		} else {
 			verses = append(verses, verse)
 		}
@@ -75,9 +96,9 @@ func parseLyrics(html string) []*domain.Verse {
 	return verses
 }
 
-// ParseSong parses html and returns a song
-func ParseSong(html string) (*domain.Song, error) {
-	document, err := parseHTML(html)
+// ParseSong parses html and returns a pointer to the Song instance
+func (p *defaultParser) ParseSong(html string) (*domain.Song, error) {
+	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error happened during html parsing")
 	}
@@ -85,7 +106,7 @@ func ParseSong(html string) (*domain.Song, error) {
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
 	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
 	lyricsHTML, _ := document.Find("p:last-of-type").Html()
-	verses := parseLyrics(lyricsHTML)
+	verses := p.parseLyrics(lyricsHTML)
 	song := &domain.Song{
 		Title:  title,
 		Author: author,
@@ -95,9 +116,9 @@ func ParseSong(html string) (*domain.Song, error) {
 	return song, nil
 }
 
-// ParsePreviews parses html and returns a song
-func ParsePreviews(html string) ([]*domain.Preview, error) {
-	document, err := parseHTML(html)
+// ParsePreviews parses html and returns a slice of pointers of the Preview instances
+func (p *defaultParser) ParsePreviews(html string) ([]*domain.Preview, error) {
+	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error happened during html parsing")
 	}

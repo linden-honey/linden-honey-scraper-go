@@ -2,6 +2,12 @@ package parser
 
 import (
 	"testing"
+
+	log "github.com/sirupsen/logrus"
+)
+
+var (
+	testParser = NewDefaultParser(log.StandardLogger())
 )
 
 func TestParsePreviews(t *testing.T) {
@@ -13,7 +19,7 @@ func TestParsePreviews(t *testing.T) {
 	<li><a href="/texts/1056901056.html">Всё как у людей</a></li>
 	</ul>
 	`
-	previews, _ := ParsePreviews(html)
+	previews, _ := testParser.ParsePreviews(html)
 	t.Log(previews)
 	if len(previews) != 2 {
 		t.Error("Parsing previews failed")

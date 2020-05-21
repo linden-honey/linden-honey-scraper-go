@@ -91,7 +91,7 @@ func (f *defaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, 
 	defer func() {
 		err := res.Body.Close()
 		if err != nil {
-			f.logger.Println("Can't close response body")
+			f.logger.Warn("Can't close response body")
 		}
 	}()
 	decoder := f.props.SourceEncoding.NewDecoder()

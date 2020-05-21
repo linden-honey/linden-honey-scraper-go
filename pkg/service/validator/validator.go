@@ -30,8 +30,7 @@ func (v *defaultValidator) Validate(s interface{}) bool {
 	if !isValid {
 		//TODO return error with readable string representation
 		validationErrors := err.(validator.ValidationErrors)
-		v.logger.Printf("Validation failed for %v", s)
-		v.logger.Println(validationErrors)
+		v.logger.Warnf("Validation failed for %V due to %V", s, validationErrors)
 	}
 	return isValid
 }

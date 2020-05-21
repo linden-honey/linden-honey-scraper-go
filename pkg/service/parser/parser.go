@@ -70,7 +70,7 @@ func (p *defaultParser) ParseVerse(html string) (*domain.Verse, error) {
 	for _, text := range strings.Split(html, "<br/>") {
 		quote, err := p.ParseQuote(text)
 		if err != nil {
-			p.logger.Println("Error happened during quote parsing", err)
+			p.logger.Warn(errors.Wrap(err, "Error happened during quote parsing"))
 		} else {
 			quotes = append(quotes, quote)
 		}
@@ -88,7 +88,7 @@ func (p *defaultParser) parseLyrics(html string) []*domain.Verse {
 	for _, verseHTML := range re.Split(html, -1) {
 		verse, err := p.ParseVerse(verseHTML)
 		if err != nil {
-			p.logger.Println("Error happened during lyrics parsing", err)
+			p.logger.Warn("Error happened during verse parsing", err)
 		} else {
 			verses = append(verses, verse)
 		}

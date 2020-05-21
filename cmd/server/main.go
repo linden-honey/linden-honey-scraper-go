@@ -19,11 +19,14 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/io"
 )
 
-var (
-	logger = log.StandardLogger()
-)
-
 func main() {
+	// initialize logger
+	logger := log.New()
+	logger.SetLevel(log.DebugLevel)
+	logger.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
 	// initialize root router
 	rootRouter := mux.
 		NewRouter().

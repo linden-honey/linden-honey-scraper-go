@@ -1,7 +1,8 @@
-package scraper
+package service
 
 import (
 	"context"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/domain"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -21,7 +22,7 @@ type loggingMiddleware struct {
 	next   Service
 }
 
-func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *Song, err error) {
+func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *domain.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "scrape a song",
 		"id", id,
@@ -44,7 +45,7 @@ func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *Song, er
 	return mw.next.GetSong(ctx, id)
 }
 
-func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []Song, err error) {
+func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []domain.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "start songs scraping",
 	)
@@ -64,7 +65,7 @@ func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []Song, err error)
 	return mw.next.GetSongs(ctx)
 }
 
-func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []Preview, err error) {
+func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []domain.Preview, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "start previews scraping",
 	)

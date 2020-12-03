@@ -1,3 +1,3 @@
-package scraper
+package service
 
 type Middleware func(Service) Service

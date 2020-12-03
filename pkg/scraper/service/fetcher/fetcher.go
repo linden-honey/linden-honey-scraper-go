@@ -9,15 +9,13 @@ import (
 
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/charmap"
 )
 
-// Fetcher represents the fetcher interface
-type Fetcher interface {
-	Fetch(pathFormat string, args ...interface{}) (string, error)
-}
+//TODO refactor configuration
+// 1. rename Properties to Config
+// 2. Provide default values
+// 3. Validate required values in constructor
 
 // RetryProperties represents the retry properties structure
 type RetryProperties struct {
@@ -35,24 +33,21 @@ type Properties struct {
 
 // defaultFetcher represents the default fetcher implementation
 type defaultFetcher struct {
-	logger *log.Logger
 	client *httpclient.Client
 	props  *Properties
 }
 
 // NewDefaultFetcher returns a pointer to the new instance of defaultFetcher
-func NewDefaultFetcher(logger *log.Logger, props *Properties) *defaultFetcher {
+func NewDefaultFetcher(props *Properties) *defaultFetcher {
 	return &defaultFetcher{
-		logger: logger,
 		client: httpclient.NewClient(),
 		props:  props,
 	}
 }
 
 // NewDefaultFetcherWithRetry returns pointer to the new instance of defaultFetcher with retry feature
-func NewDefaultFetcherWithRetry(logger *log.Logger, props *Properties, retry *RetryProperties) *defaultFetcher {
+func NewDefaultFetcherWithRetry(props *Properties, retry *RetryProperties) *defaultFetcher {
 	return &defaultFetcher{
-		logger: logger,
 		client: httpclient.NewClient(
 			httpclient.WithRetryCount(retry.Retries),
 			httpclient.WithRetrier(
@@ -74,8 +69,9 @@ func NewDefaultFetcherWithRetry(logger *log.Logger, props *Properties, retry *Re
 func (f *defaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
 	fetchURL, err := f.props.BaseURL.Parse(fmt.Sprintf(pathFormat, args...))
 	if err != nil {
-		return "", errors.Wrap(err, "Couldn't parse url")
+		return "", fmt.Errorf("failed to parse URL: %w", err)
 	}
+
 	header := http.Header{
 		"User-Agent": []string{
 			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
@@ -83,21 +79,23 @@ func (f *defaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, 
 	}
 	res, err := f.client.Get(fetchURL.String(), header)
 	if err != nil {
-		return "", errors.Wrap(err, "GET request failed")
+		return "", fmt.Errorf("failed to proceed request: %w", err)
 	}
+
 	if res.StatusCode != 200 {
-		return "", errors.Wrapf(err, "Server did not respond successfully - status code %d", res.StatusCode)
+		return "", fmt.Errorf("server did not respond successfully - status code %d", res.StatusCode)
 	}
-	defer func() {
-		err := res.Body.Close()
-		if err != nil {
-			f.logger.Warn("Can't close response body")
-		}
-	}()
+	defer res.Body.Close()
+
 	decoder := f.props.SourceEncoding.NewDecoder()
 	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
 	if err != nil {
-		return "", errors.Wrap(err, "Error happened during response reading")
+		return "", fmt.Errorf("failed to read response: %w", err)
 	}
+
 	return string(body), nil
+}
+
+func main() {
+
 }

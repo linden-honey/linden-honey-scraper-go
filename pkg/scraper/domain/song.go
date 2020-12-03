@@ -1,14 +1,4 @@
-package scraper
-
-// Quote represents a domain object
-type Quote struct {
-	Phrase string `validate:"required" json:"phrase"`
-}
-
-// Verse represents a domain object
-type Verse struct {
-	Quotes []Quote `validate:"required" json:"quotes"`
-}
+package domain
 
 // Song represents a domain object
 type Song struct {
@@ -24,10 +14,4 @@ func (s *Song) GetQuotes() (quotes []Quote) {
 		quotes = append(quotes, verse.Quotes...)
 	}
 	return quotes
-}
-
-// Preview represents domain object
-type Preview struct {
-	ID    string `validate:"required" json:"id"`
-	Title string `validate:"required" json:"title"`
 }

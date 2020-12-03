@@ -12,8 +12,8 @@ import (
 	swagger "github.com/swaggo/http-swagger"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/controller"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/fetcher"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/validator"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/io"

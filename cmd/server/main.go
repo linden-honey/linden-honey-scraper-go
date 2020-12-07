@@ -31,7 +31,6 @@ func main() {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
 	logger = level.NewFilter(logger, level.AllowDebug())
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
-	logger = log.With(logger, "caller", log.DefaultCaller)
 
 	router := mux.
 		NewRouter().
@@ -57,7 +56,22 @@ func main() {
 		parser.NewDefaultParser(),
 		validator.NewDefaultValidator(),
 	)
-	scraperService = scrapersvc.LoggingMiddleware(logger)(scraperService)
+	scraperService = scrapersvc.LoggingMiddleware(
+		log.With(
+			logger,
+			"component", "scraper",
+			"scraper_source", u.String(),
+		),
+	)(scraperService)
+
+	// initialize aggregator service
+	scraperService = scrapersvc.NewAggregatorService(scraperService)
+	scraperService = scrapersvc.LoggingMiddleware(
+		log.With(
+			logger,
+			"component", "aggregator",
+		),
+	)(scraperService)
 
 	// initialize scraper endpoints
 	scraperEndpoints := scraperendpoint.NewEndpoints(scraperService)

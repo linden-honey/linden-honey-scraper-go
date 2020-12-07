@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/domain"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/domain"
 )
 
 func LoggingMiddleware(logger log.Logger) Middleware {
@@ -31,14 +32,14 @@ func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *domain.S
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "successfully scraped a song",
-				"id", id,
-				"title", s.Title,
+				"song_id", id,
+				"song_title", s.Title,
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "failed to scrape a song",
-				"id", id,
-				"error", err,
+				"song_id", id,
+				"err", err,
 			)
 		}
 	}()
@@ -53,12 +54,12 @@ func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []domain.Song, err
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "songs scraping successfully finished",
-				"count", len(ss),
+				"res_count", len(ss),
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "songs scraping failed",
-				"error", err,
+				"err", err,
 			)
 		}
 	}()
@@ -73,12 +74,12 @@ func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []domain.Previe
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "previews scraping successfully finished",
-				"count", len(pp),
+				"res_count", len(pp),
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "previews scraping failed",
-				"error", err,
+				"err", err,
 			)
 		}
 	}()

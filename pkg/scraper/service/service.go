@@ -18,9 +18,13 @@ func NewService(
 	parser parser,
 	validator validator,
 ) Service {
-	return NewScraper(
+	return newScraper(
 		fetcher,
 		parser,
 		validator,
 	)
+}
+
+func NewAggregatorService(ss ...Service) Service {
+	return newAggregator(ss...)
 }

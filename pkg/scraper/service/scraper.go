@@ -27,7 +27,7 @@ type scraper struct {
 	validator validator
 }
 
-func NewScraper(
+func newScraper(
 	fetcher fetcher,
 	parser parser,
 	validator validator,

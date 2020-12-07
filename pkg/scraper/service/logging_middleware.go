@@ -26,7 +26,7 @@ type loggingMiddleware struct {
 func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *domain.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "scrape a song",
-		"id", id,
+		"song_id", id,
 	)
 	defer func() {
 		if err == nil {

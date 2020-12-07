@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"net/url"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"golang.org/x/text/encoding/charmap"
 
 	"github.com/go-kit/kit/log"
@@ -60,7 +60,7 @@ func main() {
 		log.With(
 			logger,
 			"component", "scraper",
-			"scraper_source", u.String(),
+			"source", u.String(),
 		),
 	)(scraperService)
 
@@ -93,11 +93,6 @@ func main() {
 
 	// register docs handler
 	router.PathPrefix("/").Handler(docsHTTPHandler)
-
-	if err := http.ListenAndServe(":8080", router); err != nil {
-		_ = level.Error(logger).Log("msg", "failed to serve http server", "err", err)
-		os.Exit(1)
-	}
 
 	errs := make(chan error)
 	go func() {

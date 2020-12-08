@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/endpoint"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
 )
 
 func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Logger) http.Handler {

@@ -1,4 +1,4 @@
-package service
+package middleware
 
 import (
 	"context"
@@ -6,11 +6,12 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
 )
 
 func LoggingMiddleware(logger log.Logger) Middleware {
-	return func(next Service) Service {
+	return func(next service.Service) service.Service {
 		return loggingMiddleware{
 			logger: logger,
 			next:   next,
@@ -20,7 +21,7 @@ func LoggingMiddleware(logger log.Logger) Middleware {
 
 type loggingMiddleware struct {
 	logger log.Logger
-	next   Service
+	next   service.Service
 }
 
 func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *domain.Song, err error) {

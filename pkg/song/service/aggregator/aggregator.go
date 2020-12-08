@@ -1,10 +1,11 @@
-package service
+package aggregator
 
 import (
 	"context"
 	"fmt"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/domain"
 )
 
 type aggregationErr struct {
@@ -24,12 +25,12 @@ func (err *aggregationErr) Error() string {
 }
 
 type aggregator struct {
-	services []Service
+	services []service.Service
 }
 
-func newAggregator(ss ...Service) *aggregator {
+func NewAggregator(services ...service.Service) *aggregator {
 	return &aggregator{
-		services: ss,
+		services: services,
 	}
 }
 

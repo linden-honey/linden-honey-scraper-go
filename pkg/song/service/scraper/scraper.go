@@ -1,36 +1,36 @@
-package service
+package scraper
 
 import (
 	"context"
 	"fmt"
 	"sort"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/domain"
 )
 
-type fetcher interface {
+type Fetcher interface {
 	Fetch(pathFormat string, args ...interface{}) (string, error)
 }
 
-type parser interface {
+type Parser interface {
 	ParseSong(input string) (*domain.Song, error)
 	ParsePreviews(input string) ([]domain.Preview, error)
 }
 
-type validator interface {
+type Validator interface {
 	Validate(s interface{}) bool
 }
 
 type scraper struct {
-	fetcher   fetcher
-	parser    parser
-	validator validator
+	fetcher   Fetcher
+	parser    Parser
+	validator Validator
 }
 
-func newScraper(
-	fetcher fetcher,
-	parser parser,
-	validator validator,
+func NewScraper(
+	fetcher Fetcher,
+	parser Parser,
+	validator Validator,
 ) *scraper {
 	return &scraper{
 		fetcher:   fetcher,

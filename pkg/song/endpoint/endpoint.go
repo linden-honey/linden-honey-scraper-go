@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/service"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
 )
 
 type Endpoints struct {

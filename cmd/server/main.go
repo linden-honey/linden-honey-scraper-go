@@ -1,123 +1,145 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"golang.org/x/text/encoding/charmap"
 
-	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
-	swagger "github.com/swaggo/http-swagger"
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/controller"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/fetcher"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/parser"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/service/validator"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/util/io"
+	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
+	docssvc "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/service"
+	docshttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/transport/http"
+	songendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
+	songsvc "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/aggregator"
+	songsvcmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/middleware"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/validator"
+	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
 
 func main() {
 	// initialize logger
-	logger := log.New()
-	logger.SetLevel(log.DebugLevel)
-	logger.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
-	})
-
-	// initialize root router
-	rootRouter := mux.
-		NewRouter().
-		StrictSlash(true)
-
-	// initialize api router
-	apiRouter := rootRouter.
-		PathPrefix("/api").
-		Subrouter()
-
-	//parse
-	u, err := url.Parse("http://www.gr-oborona.ru")
-	if err != nil {
-		logger.Fatal("Can't parse base URL", err)
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
+		logger = level.NewFilter(logger, level.AllowDebug())
+		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 	}
 
-	// initialize scrapper
-	s := scraper.NewDefaultScraper(
-		logger,
-		fetcher.NewDefaultFetcherWithRetry(
+	// initialize song service
+	var songService songsvc.Service
+	{
+		// TODO get URL from configuration
+		u, _ := url.Parse("http://www.gr-oborona.ru")
+
+		// initialize scraper
+		songService = scraper.NewScraper(
+			fetcher.NewDefaultFetcherWithRetry(
+				&fetcher.Properties{
+					BaseURL:        u,
+					SourceEncoding: charmap.Windows1251,
+				},
+				&fetcher.RetryProperties{
+					Retries:    5,
+					Factor:     3,
+					MinTimeout: time.Second * 1,
+					MaxTimeout: time.Second * 6,
+				},
+			),
+			parser.NewDefaultParser(),
+			validator.NewDefaultValidator(),
+		)
+		songService = songsvcmiddleware.LoggingMiddleware(
+			log.With(
+				logger,
+				"component", "scraper",
+				"source", u.String(),
+			),
+		)(songService)
+
+		// initialize aggregator service
+		songService = aggregator.NewAggregator(songService)
+		songService = songsvcmiddleware.LoggingMiddleware(
+			log.With(
+				logger,
+				"component", "aggregator",
+			),
+		)(songService)
+	}
+
+	// initialize songs endpoints
+	var songEndpoints *songendpoint.Endpoints
+	{
+		songEndpoints = songendpoint.NewEndpoints(songService)
+	}
+
+	// initialize song http handler
+	var songHTTPHandler http.Handler
+	{
+		songHTTPHandler = songhttptransport.NewHTTPHandler(
+			"/api/songs",
+			songEndpoints,
 			logger,
-			&fetcher.Properties{
-				BaseURL:        u,
-				SourceEncoding: charmap.Windows1251,
-			},
-			&fetcher.RetryProperties{
-				Retries:    5,
-				Factor:     3,
-				MinTimeout: time.Second * 1,
-				MaxTimeout: time.Second * 6,
-			},
-		),
-		parser.NewDefaultParser(logger),
-		validator.NewDefaultValidator(logger),
-	)
+		)
+	}
 
-	// initialize song controller
-	songController := controller.NewSongController(
-		logger,
-		s,
-	)
+	// initialize docs service
+	var docsService docssvc.Service
+	{
+		docsService = docssvc.NewService("./api/openapi-spec/openapi.json")
+	}
 
-	// initialize song router
-	songRouter := apiRouter.
-		PathPrefix("/songs").
-		Subrouter()
+	// initialize docs endpoints
+	var docsEndpoints *docsendpoint.Endpoints
+	{
+		docsEndpoints = docsendpoint.NewEndpoints(docsService)
+	}
 
-	// declare song routes
-	songRouter.
-		Path("/").
-		Methods("GET").
-		Queries("projection", "preview").
-		HandlerFunc(songController.GetPreviews).
-		Name("getPreviews")
-	songRouter.
-		Path("/").
-		Methods("GET").
-		HandlerFunc(songController.GetSongs).
-		Name("getSongs")
-	songRouter.
-		Path("/{songId}").
-		Methods("GET").
-		HandlerFunc(songController.GetSong).
-		Name("getSong")
+	// initialize docs http handler
+	var docsHTTPHandler http.Handler
+	{
+		docsHTTPHandler = docshttptransport.NewHTTPHandler(
+			"/",
+			docsEndpoints,
+			log.With(logger, "component", "http"),
+		)
+	}
 
-	// initialize docs controller
-	spec := io.MustReadContent("api/openapi-spec/openapi.json")
-	docsController := controller.NewDocsController(
-		logger,
-		spec,
-	)
+	// initialize router
+	var router *mux.Router
+	{
+		router = mux.NewRouter().StrictSlash(true)
 
-	// initialize docs router
-	docsRouter := rootRouter.
-		PathPrefix("/").
-		Subrouter()
+		// register song http handler
+		router.PathPrefix("/api/songs").Handler(songHTTPHandler)
 
-	// declare docs routes
-	docsRouter.
-		Path("/api-docs").
-		Methods("GET").
-		HandlerFunc(docsController.GetSpec).
-		Name("getApiDocs")
-	docsRouter.
-		PathPrefix("/").
-		Methods("GET").
-		Handler(swagger.Handler(
-			swagger.URL("/api-docs"),
-		)).
-		Name("swagger")
+		// register docs handler
+		router.PathPrefix("/").Handler(docsHTTPHandler)
+	}
 
-	logger.Printf("Application is started on %d port!", 8080)
-	logger.Fatal(http.ListenAndServe(":8080", rootRouter))
+	errs := make(chan error)
+	go func() {
+		c := make(chan os.Signal)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		errs <- fmt.Errorf("%s", <-c)
+	}()
+
+	go func() {
+		_ = logger.Log("transport", "http", "addr", "0.0.0.0:8080")
+		errs <- http.ListenAndServe(":8080", router)
+	}()
+
+	_ = logger.Log("exit", <-errs)
 }

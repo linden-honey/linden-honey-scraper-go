@@ -95,7 +95,3 @@ func (f *defaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, 
 
 	return string(body), nil
 }
-
-func main() {
-
-}

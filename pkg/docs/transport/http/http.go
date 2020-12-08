@@ -2,8 +2,8 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/gorilla/mux"
 	swagger "github.com/swaggo/http-swagger"
@@ -24,8 +24,9 @@ func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Log
 		NewRouter().
 		StrictSlash(true)
 
+	specPath := path.Join(prefix, "docs")
 	r.
-		Path(fmt.Sprintf("%s/docs", prefix)).
+		Path(specPath).
 		Methods("GET").
 		Handler(httptransport.NewServer(
 			endpoints.GetSpec,
@@ -34,10 +35,10 @@ func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Log
 			opts...,
 		))
 	r.
-		PathPrefix(prefix).
+		PathPrefix(path.Clean(prefix)).
 		Methods("GET").
 		Handler(swagger.Handler(
-			swagger.URL("/docs"),
+			swagger.URL(specPath),
 		))
 
 	return r

@@ -3,8 +3,8 @@ package http
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/gorilla/mux"
 
@@ -27,7 +27,7 @@ func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Log
 
 	// declare routes
 	r.
-		Path(prefix).
+		Path(path.Clean(prefix)).
 		Methods("GET").
 		Queries("projection", "preview").
 		Handler(httptransport.NewServer(
@@ -37,7 +37,7 @@ func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Log
 			opts...,
 		))
 	r.
-		Path(prefix).
+		Path(path.Clean(prefix)).
 		Methods("GET").
 		Handler(httptransport.NewServer(
 			endpoints.GetSongs,
@@ -46,7 +46,7 @@ func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Log
 			opts...,
 		))
 	r.
-		Path(fmt.Sprintf("%s/{id}", prefix)).
+		Path(path.Join(prefix, "{id}")).
 		Methods("GET").
 		Handler(httptransport.NewServer(
 			endpoints.GetSong,

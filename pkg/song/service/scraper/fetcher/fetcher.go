@@ -7,9 +7,10 @@ import (
 	"net/url"
 	"time"
 
+	"golang.org/x/text/encoding/charmap"
+
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
-	"golang.org/x/text/encoding/charmap"
 )
 
 //TODO refactor configuration
@@ -31,23 +32,25 @@ type Properties struct {
 	SourceEncoding *charmap.Charmap
 }
 
-// defaultFetcher represents the default fetcher implementation
-type defaultFetcher struct {
-	client *httpclient.Client
-	props  *Properties
+// DefaultFetcher represents the default fetcher implementation
+type DefaultFetcher struct {
+	client         heimdall.Doer
+	baseURL        *url.URL
+	sourceEncoding *charmap.Charmap
 }
 
 // NewDefaultFetcher returns a pointer to the new instance of defaultFetcher
-func NewDefaultFetcher(props *Properties) *defaultFetcher {
-	return &defaultFetcher{
-		client: httpclient.NewClient(),
-		props:  props,
+func NewDefaultFetcher(props *Properties) *DefaultFetcher {
+	return &DefaultFetcher{
+		client:         httpclient.NewClient(),
+		baseURL:        props.BaseURL,
+		sourceEncoding: props.SourceEncoding,
 	}
 }
 
 // NewDefaultFetcherWithRetry returns pointer to the new instance of defaultFetcher with retry feature
-func NewDefaultFetcherWithRetry(props *Properties, retry *RetryProperties) *defaultFetcher {
-	return &defaultFetcher{
+func NewDefaultFetcherWithRetry(props *Properties, retry *RetryProperties) *DefaultFetcher {
+	return &DefaultFetcher{
 		client: httpclient.NewClient(
 			httpclient.WithRetryCount(retry.Retries),
 			httpclient.WithRetrier(
@@ -61,23 +64,29 @@ func NewDefaultFetcherWithRetry(props *Properties, retry *RetryProperties) *defa
 				),
 			),
 		),
-		props: props,
+		baseURL:        props.BaseURL,
+		sourceEncoding: props.SourceEncoding,
 	}
 }
 
 // Fetch send GET request under relative path built with pathFormat and args and returns content string
-func (f *defaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
-	fetchURL, err := f.props.BaseURL.Parse(fmt.Sprintf(pathFormat, args...))
+func (f *DefaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
+	fetchURL, err := f.baseURL.Parse(fmt.Sprintf(pathFormat, args...))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse URL: %w", err)
 	}
 
-	header := http.Header{
+	req, err := http.NewRequest(http.MethodGet, fetchURL.String(), nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header = http.Header{
 		"User-Agent": []string{
 			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
 		},
 	}
-	res, err := f.client.Get(fetchURL.String(), header)
+
+	res, err := f.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to proceed request: %w", err)
 	}
@@ -87,7 +96,7 @@ func (f *defaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, 
 	}
 	defer res.Body.Close()
 
-	decoder := f.props.SourceEncoding.NewDecoder()
+	decoder := f.sourceEncoding.NewDecoder()
 	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
 	if err != nil {
 		return "", fmt.Errorf("failed to read response: %w", err)

@@ -46,7 +46,7 @@ func main() {
 
 		// initialize scraper
 		songService = scraper.NewScraper(
-			fetcher.NewDefaultFetcherWithRetry(
+			fetcher.NewFetcherWithRetry(
 				&fetcher.Properties{
 					BaseURL:        u,
 					SourceEncoding: charmap.Windows1251,
@@ -58,8 +58,8 @@ func main() {
 					MaxTimeout: time.Second * 6,
 				},
 			),
-			parser.NewDefaultParser(),
-			validator.NewDefaultValidator(),
+			parser.NewParser(),
+			validator.NewValidator(),
 		)
 		songService = songsvcmiddleware.LoggingMiddleware(
 			log.With(

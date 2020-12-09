@@ -32,25 +32,25 @@ type Properties struct {
 	SourceEncoding *charmap.Charmap
 }
 
-// DefaultFetcher represents the default fetcher implementation
-type DefaultFetcher struct {
+// Fetcher represents the fetcher implementation
+type Fetcher struct {
 	client         heimdall.Doer
 	baseURL        *url.URL
 	sourceEncoding *charmap.Charmap
 }
 
-// NewDefaultFetcher returns a pointer to the new instance of defaultFetcher
-func NewDefaultFetcher(props *Properties) *DefaultFetcher {
-	return &DefaultFetcher{
+// NewFetcher returns a pointer to the new instance of defaultFetcher
+func NewFetcher(props *Properties) *Fetcher {
+	return &Fetcher{
 		client:         httpclient.NewClient(),
 		baseURL:        props.BaseURL,
 		sourceEncoding: props.SourceEncoding,
 	}
 }
 
-// NewDefaultFetcherWithRetry returns pointer to the new instance of defaultFetcher with retry feature
-func NewDefaultFetcherWithRetry(props *Properties, retry *RetryProperties) *DefaultFetcher {
-	return &DefaultFetcher{
+// NewFetcherWithRetry returns a pointer to the new instance of defaultFetcher with retry feature
+func NewFetcherWithRetry(props *Properties, retry *RetryProperties) *Fetcher {
+	return &Fetcher{
 		client: httpclient.NewClient(
 			httpclient.WithRetryCount(retry.Retries),
 			httpclient.WithRetrier(
@@ -70,7 +70,7 @@ func NewDefaultFetcherWithRetry(props *Properties, retry *RetryProperties) *Defa
 }
 
 // Fetch send GET request under relative path built with pathFormat and args and returns content string
-func (f *DefaultFetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
+func (f *Fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
 	fetchURL, err := f.baseURL.Parse(fmt.Sprintf(pathFormat, args...))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse URL: %w", err)

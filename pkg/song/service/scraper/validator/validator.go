@@ -4,17 +4,17 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// defaultValidator represents the default validator implementation
-type defaultValidator struct {
+// Validator represents the validator implementation
+type Validator struct {
 }
 
-// NewDefaultValidator returns a pointer to the new instance of defaultValidator
-func NewDefaultValidator() *defaultValidator {
-	return &defaultValidator{}
+// NewValidator returns a pointer to the new instance of Validator
+func NewValidator() *Validator {
+	return &Validator{}
 }
 
-// Validate returns true if structure is valid and logs errors
-func (v *defaultValidator) Validate(s interface{}) bool {
+// Validate returns true if structure is valid
+func (v *Validator) Validate(s interface{}) bool {
 	//TODO change to interface filed of validator or rewrite validator at all
 	validate := validator.New()
 

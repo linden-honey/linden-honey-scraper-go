@@ -7,10 +7,12 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
 )
 
+// Aggregator represents the aggregation service implementation
 type Aggregator struct {
 	services []service.Service
 }
 
+// NewAggregator returns a pointer to the new instance of Aggregator
 func NewAggregator(services ...service.Service) *Aggregator {
 	return &Aggregator{
 		services: services,

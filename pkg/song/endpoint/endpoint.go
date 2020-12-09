@@ -8,12 +8,14 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
 )
 
+// Endpoints represents song endpoints
 type Endpoints struct {
 	GetSong     endpoint.Endpoint
 	GetSongs    endpoint.Endpoint
 	GetPreviews endpoint.Endpoint
 }
 
+// NewEndpoints returns a pointer to the new instance of Endpoints
 func NewEndpoints(svc service.Service) *Endpoints {
 	return &Endpoints{
 		GetSong:     makeGetSongEndpoint(svc),

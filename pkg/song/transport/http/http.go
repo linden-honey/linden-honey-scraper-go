@@ -15,6 +15,7 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
 )
 
+// NewHTTPHandler returns new instance of http.Handler
 func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Logger) http.Handler {
 	opts := []httptransport.ServerOption{
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),

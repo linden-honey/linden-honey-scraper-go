@@ -10,6 +10,7 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
 )
 
+// LoggingMiddleware returns logging middleware for scraper service
 func LoggingMiddleware(logger log.Logger) Middleware {
 	return func(next service.Service) service.Service {
 		return loggingMiddleware{

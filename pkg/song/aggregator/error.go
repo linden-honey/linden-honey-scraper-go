@@ -1,6 +1,8 @@
 package aggregator
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type aggregationErr struct {
 	msg     string

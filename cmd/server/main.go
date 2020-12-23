@@ -15,17 +15,18 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
-	docssvc "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/service"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/provider"
 	docshttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/transport/http"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/aggregator"
 	songendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
-	songsvc "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/aggregator"
-	songsvcmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/middleware"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/fetcher"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/validator"
+	songmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/middleware"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/validator"
 	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
 
@@ -39,13 +40,13 @@ func main() {
 	}
 
 	// initialize song service
-	var songService songsvc.Service
+	var songService song.Service
 	{
 		// TODO get URL from configuration
 		u, _ := url.Parse("http://www.gr-oborona.ru")
 
 		// initialize scraper
-		songService = scraper.NewScraper(
+		songService = scraper.NewService(
 			fetcher.NewFetcherWithRetry(
 				&fetcher.Properties{
 					BaseURL:        u,
@@ -61,7 +62,7 @@ func main() {
 			parser.NewParser(),
 			validator.NewValidator(),
 		)
-		songService = songsvcmiddleware.LoggingMiddleware(
+		songService = songmiddleware.LoggingMiddleware(
 			log.With(
 				logger,
 				"component", "scraper",
@@ -69,9 +70,9 @@ func main() {
 			),
 		)(songService)
 
-		// initialize aggregator service
-		songService = aggregator.NewAggregator(songService)
-		songService = songsvcmiddleware.LoggingMiddleware(
+		// initialize aggregator
+		songService = aggregator.NewService(songService)
+		songService = songmiddleware.LoggingMiddleware(
 			log.With(
 				logger,
 				"component", "aggregator",
@@ -96,9 +97,9 @@ func main() {
 	}
 
 	// initialize docs service
-	var docsService docssvc.Service
+	var docsService docs.Service
 	{
-		docsService = docssvc.NewService("./api/openapi-spec/openapi.json")
+		docsService = provider.NewService("./api/openapi-spec/openapi.json")
 	}
 
 	// initialize docs endpoints

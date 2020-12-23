@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
 // Endpoints represents song endpoints
@@ -16,7 +16,7 @@ type Endpoints struct {
 }
 
 // NewEndpoints returns a pointer to the new instance of Endpoints
-func NewEndpoints(svc service.Service) *Endpoints {
+func NewEndpoints(svc song.Service) *Endpoints {
 	return &Endpoints{
 		GetSong:     makeGetSongEndpoint(svc),
 		GetSongs:    makeGetSongsEndpoint(svc),
@@ -24,7 +24,7 @@ func NewEndpoints(svc service.Service) *Endpoints {
 	}
 }
 
-func makeGetSongEndpoint(svc service.Service) endpoint.Endpoint {
+func makeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(GetSongRequest)
 
@@ -39,7 +39,7 @@ func makeGetSongEndpoint(svc service.Service) endpoint.Endpoint {
 	}
 }
 
-func makeGetSongsEndpoint(svc service.Service) endpoint.Endpoint {
+func makeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		_ = request.(GetSongsRequest)
 
@@ -54,7 +54,7 @@ func makeGetSongsEndpoint(svc service.Service) endpoint.Endpoint {
 	}
 }
 
-func makeGetPreviewsEndpoint(svc service.Service) endpoint.Endpoint {
+func makeGetPreviewsEndpoint(svc song.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		_ = request.(GetPreviewsRequest)
 

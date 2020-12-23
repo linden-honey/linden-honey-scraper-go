@@ -3,23 +3,22 @@ package aggregator
 import (
 	"context"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/domain"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
-// Aggregator represents the aggregation service implementation
-type Aggregator struct {
-	services []service.Service
+// aggregator represents the aggregation service implementation
+type aggregator struct {
+	services []song.Service
 }
 
-// NewAggregator returns a pointer to the new instance of Aggregator
-func NewAggregator(services ...service.Service) *Aggregator {
-	return &Aggregator{
+// NewService returns a pointer to the new instance of aggregator
+func NewService(services ...song.Service) song.Service {
+	return &aggregator{
 		services: services,
 	}
 }
 
-func (a Aggregator) GetSong(ctx context.Context, id string) (*domain.Song, error) {
+func (a aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) {
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		s, err := svc.GetSong(ctx, id)
@@ -32,8 +31,8 @@ func (a Aggregator) GetSong(ctx context.Context, id string) (*domain.Song, error
 	return nil, newAggregationErr("failed to scrape a song", errs...)
 }
 
-func (a Aggregator) GetSongs(ctx context.Context) ([]domain.Song, error) {
-	res := make([]domain.Song, 0)
+func (a aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
+	res := make([]song.Song, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		ss, err := svc.GetSongs(ctx)
@@ -49,8 +48,8 @@ func (a Aggregator) GetSongs(ctx context.Context) ([]domain.Song, error) {
 	return res, nil
 }
 
-func (a Aggregator) GetPreviews(ctx context.Context) ([]domain.Preview, error) {
-	res := make([]domain.Preview, 0)
+func (a aggregator) GetPreviews(ctx context.Context) ([]song.Preview, error) {
+	res := make([]song.Preview, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		pp, err := svc.GetPreviews(ctx)

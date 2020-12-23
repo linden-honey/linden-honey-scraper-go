@@ -13,4 +13,5 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/swaggo/http-swagger v0.0.0-20200103000832-0e9263c4b516
 	golang.org/x/text v0.3.2
+	google.golang.org/protobuf v1.25.0 // indirect
 )

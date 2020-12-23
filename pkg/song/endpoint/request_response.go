@@ -1,7 +1,7 @@
 package endpoint
 
 import (
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
 type GetSongRequest struct {
@@ -9,19 +9,19 @@ type GetSongRequest struct {
 }
 
 type GetSongResponse struct {
-	Result *domain.Song
+	Result *song.Song
 }
 
 type GetSongsRequest struct {
 }
 
 type GetSongsResponse struct {
-	Results []domain.Song
+	Results []song.Song
 }
 
 type GetPreviewsRequest struct {
 }
 
 type GetPreviewsResponse struct {
-	Results []domain.Preview
+	Results []song.Preview
 }

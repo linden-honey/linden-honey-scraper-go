@@ -7,20 +7,21 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
 )
 
-// Parser represents the parser implementation
-type Parser struct {
+// grobParser represents the scraper.Parser implementation
+type grobParser struct {
 }
 
 // NewParser returns a pointer to the new instance of defaultParser
-func NewParser() *Parser {
-	return &Parser{}
+func NewParser() scraper.Parser {
+	return &grobParser{}
 }
 
 // parseHTML parse html and returns a pointer to the Document instance
-func (p *Parser) parseHTML(html string) (*goquery.Document, error) {
+func (p *grobParser) parseHTML(html string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create document: %w", err)
@@ -30,7 +31,7 @@ func (p *Parser) parseHTML(html string) (*goquery.Document, error) {
 }
 
 // ParseQuote parses html and returns a pointer to the Quote instance
-func (p *Parser) ParseQuote(html string) (*domain.Quote, error) {
+func (p *grobParser) ParseQuote(html string) (*song.Quote, error) {
 	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
@@ -38,7 +39,7 @@ func (p *Parser) ParseQuote(html string) (*domain.Quote, error) {
 
 	re := regexp.MustCompile(`\s+`)
 	phrase := re.ReplaceAllLiteralString(strings.TrimSpace(document.Text()), " ")
-	quote := &domain.Quote{
+	quote := &song.Quote{
 		Phrase: phrase,
 	}
 
@@ -46,8 +47,8 @@ func (p *Parser) ParseQuote(html string) (*domain.Quote, error) {
 }
 
 // ParseVerse parses html and returns a pointer to the Verse instance
-func (p *Parser) ParseVerse(html string) (*domain.Verse, error) {
-	quotes := make([]domain.Quote, 0)
+func (p *grobParser) ParseVerse(html string) (*song.Verse, error) {
+	quotes := make([]song.Quote, 0)
 	for _, text := range strings.Split(html, "<br/>") {
 		quote, err := p.ParseQuote(text)
 		if err != nil {
@@ -56,14 +57,14 @@ func (p *Parser) ParseVerse(html string) (*domain.Verse, error) {
 		quotes = append(quotes, *quote)
 	}
 
-	return &domain.Verse{
+	return &song.Verse{
 		Quotes: quotes,
 	}, nil
 }
 
 // ParseVerse parses html and returns a slice of pointers of the Verse instances
-func (p *Parser) parseLyrics(html string) ([]domain.Verse, error) {
-	verses := make([]domain.Verse, 0)
+func (p *grobParser) parseLyrics(html string) ([]song.Verse, error) {
+	verses := make([]song.Verse, 0)
 	re := regexp.MustCompile(`(?:<br/>\s*){2,}`)
 	for _, verseHTML := range re.Split(html, -1) {
 		verse, err := p.ParseVerse(verseHTML)
@@ -78,7 +79,7 @@ func (p *Parser) parseLyrics(html string) ([]domain.Verse, error) {
 }
 
 // ParseSong parses html and returns a pointer to the Song instance
-func (p *Parser) ParseSong(html string) (*domain.Song, error) {
+func (p *grobParser) ParseSong(html string) (*song.Song, error) {
 	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
@@ -94,7 +95,7 @@ func (p *Parser) ParseSong(html string) (*domain.Song, error) {
 
 	}
 
-	return &domain.Song{
+	return &song.Song{
 		Title:  title,
 		Author: author,
 		Album:  album,
@@ -103,13 +104,13 @@ func (p *Parser) ParseSong(html string) (*domain.Song, error) {
 }
 
 // ParsePreviews parses html and returns a slice of pointers of the Preview instances
-func (p *Parser) ParsePreviews(html string) ([]domain.Preview, error) {
+func (p *grobParser) ParsePreviews(html string) ([]song.Preview, error) {
 	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
 
-	previews := make([]domain.Preview, 0)
+	previews := make([]song.Preview, 0)
 	document.Find("#abc_list a").Each(func(_ int, link *goquery.Selection) {
 		path, pathExists := link.Attr("href")
 		if pathExists {
@@ -118,7 +119,7 @@ func (p *Parser) ParsePreviews(html string) ([]domain.Preview, error) {
 			if startIndex != -1 && endIndex != -1 {
 				id := path[startIndex+1 : endIndex]
 				title := link.Text()
-				previews = append(previews, domain.Preview{
+				previews = append(previews, song.Preview{
 					ID:    id,
 					Title: title,
 				})

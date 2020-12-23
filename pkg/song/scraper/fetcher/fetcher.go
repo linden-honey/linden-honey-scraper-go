@@ -11,6 +11,8 @@ import (
 
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
+
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
 )
 
 //TODO refactor configuration
@@ -32,16 +34,16 @@ type Properties struct {
 	SourceEncoding *charmap.Charmap
 }
 
-// Fetcher represents the fetcher implementation
-type Fetcher struct {
+// fetcher represents the fetcher implementation
+type fetcher struct {
 	client         heimdall.Doer
 	baseURL        *url.URL
 	sourceEncoding *charmap.Charmap
 }
 
 // NewFetcher returns a pointer to the new instance of defaultFetcher
-func NewFetcher(props *Properties) *Fetcher {
-	return &Fetcher{
+func NewFetcher(props *Properties) scraper.Fetcher {
+	return &fetcher{
 		client:         httpclient.NewClient(),
 		baseURL:        props.BaseURL,
 		sourceEncoding: props.SourceEncoding,
@@ -49,8 +51,8 @@ func NewFetcher(props *Properties) *Fetcher {
 }
 
 // NewFetcherWithRetry returns a pointer to the new instance of defaultFetcher with retry feature
-func NewFetcherWithRetry(props *Properties, retry *RetryProperties) *Fetcher {
-	return &Fetcher{
+func NewFetcherWithRetry(props *Properties, retry *RetryProperties) scraper.Fetcher {
+	return &fetcher{
 		client: httpclient.NewClient(
 			httpclient.WithRetryCount(retry.Retries),
 			httpclient.WithRetrier(
@@ -70,7 +72,7 @@ func NewFetcherWithRetry(props *Properties, retry *RetryProperties) *Fetcher {
 }
 
 // Fetch send GET request under relative path built with pathFormat and args and returns content string
-func (f *Fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
+func (f *fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
 	fetchURL, err := f.baseURL.Parse(fmt.Sprintf(pathFormat, args...))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse URL: %w", err)

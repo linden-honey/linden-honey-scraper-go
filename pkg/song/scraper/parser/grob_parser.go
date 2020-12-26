@@ -64,7 +64,8 @@ func (p *GrobParser) ParseVerse(html string) (*song.Verse, error) {
 // ParseVerse parses html and returns a slice of pointers of the Verse instances
 func (p *GrobParser) parseLyrics(html string) ([]song.Verse, error) {
 	verses := make([]song.Verse, 0)
-	re := regexp.MustCompile(`(?:<br/>\s*){2,}`)
+	// hint: match nbsp; character (\xA0) that not included in \s group
+	re := regexp.MustCompile(`(?:<br\/>[\s\xA0]*){2,}`)
 	for _, verseHTML := range re.Split(html, -1) {
 		verse, err := p.ParseVerse(verseHTML)
 		if err != nil {
@@ -87,7 +88,10 @@ func (p *GrobParser) ParseSong(html string) (*song.Song, error) {
 	title := document.Find("h2").Text()
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
 	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
-	lyricsHTML, _ := document.Find("p:last-of-type").Html()
+	lyricsHTML, err := document.Find("p:last-of-type").Html()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get lyrics html: %w", err)
+	}
 
 	verses, err := p.parseLyrics(lyricsHTML)
 	if err != nil {

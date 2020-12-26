@@ -11,8 +11,6 @@ import (
 
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
-
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
 )
 
 //TODO refactor configuration
@@ -28,31 +26,31 @@ type RetryProperties struct {
 	MaxTimeout time.Duration
 }
 
-// Properties represents the defaultScraper properties structure
+// Properties represents the properties structure
 type Properties struct {
 	BaseURL        *url.URL
 	SourceEncoding *charmap.Charmap
 }
 
-// fetcher represents the fetcher implementation
-type fetcher struct {
+// Fetcher represents the default fetcher implementation
+type Fetcher struct {
 	client         heimdall.Doer
 	baseURL        *url.URL
 	sourceEncoding *charmap.Charmap
 }
 
-// NewFetcher returns a pointer to the new instance of defaultFetcher
-func NewFetcher(props *Properties) scraper.Fetcher {
-	return &fetcher{
+// NewFetcher returns a pointer to the new instance of Fetcher
+func NewFetcher(props *Properties) (*Fetcher, error) {
+	return &Fetcher{
 		client:         httpclient.NewClient(),
 		baseURL:        props.BaseURL,
 		sourceEncoding: props.SourceEncoding,
-	}
+	}, nil
 }
 
 // NewFetcherWithRetry returns a pointer to the new instance of defaultFetcher with retry feature
-func NewFetcherWithRetry(props *Properties, retry *RetryProperties) scraper.Fetcher {
-	return &fetcher{
+func NewFetcherWithRetry(props *Properties, retry *RetryProperties) (*Fetcher, error) {
+	return &Fetcher{
 		client: httpclient.NewClient(
 			httpclient.WithRetryCount(retry.Retries),
 			httpclient.WithRetrier(
@@ -68,11 +66,11 @@ func NewFetcherWithRetry(props *Properties, retry *RetryProperties) scraper.Fetc
 		),
 		baseURL:        props.BaseURL,
 		sourceEncoding: props.SourceEncoding,
-	}
+	}, nil
 }
 
 // Fetch send GET request under relative path built with pathFormat and args and returns content string
-func (f *fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
+func (f *Fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
 	fetchURL, err := f.baseURL.Parse(fmt.Sprintf(pathFormat, args...))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse URL: %w", err)

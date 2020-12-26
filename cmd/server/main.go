@@ -30,6 +30,12 @@ import (
 	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
 
+func fatal(logger log.Logger, prefix string, err error) {
+	err = fmt.Errorf("%s: %w", prefix, err)
+	_ = logger.Log("err", err)
+	os.Exit(1)
+}
+
 func main() {
 	// initialize logger
 	var logger log.Logger
@@ -45,23 +51,38 @@ func main() {
 		// TODO get URL from configuration
 		u, _ := url.Parse("http://www.gr-oborona.ru")
 
-		// initialize scraper
-		songService = scraper.NewService(
-			fetcher.NewFetcherWithRetry(
-				&fetcher.Properties{
-					BaseURL:        u,
-					SourceEncoding: charmap.Windows1251,
-				},
-				&fetcher.RetryProperties{
-					Retries:    5,
-					Factor:     3,
-					MinTimeout: time.Second * 1,
-					MaxTimeout: time.Second * 6,
-				},
-			),
-			parser.NewParser(),
-			validator.NewValidator(),
+		f, err := fetcher.NewFetcherWithRetry(
+			&fetcher.Properties{
+				BaseURL:        u,
+				SourceEncoding: charmap.Windows1251,
+			},
+			&fetcher.RetryProperties{
+				Retries:    5,
+				Factor:     3,
+				MinTimeout: time.Second * 1,
+				MaxTimeout: time.Second * 6,
+			},
 		)
+		if err != nil {
+			fatal(logger, "failed to initialize fetcher", err)
+		}
+
+		p, err := parser.NewGrobParser()
+		if err != nil {
+			fatal(logger, "failed to initialize grob parser", err)
+		}
+
+		v, err := validator.NewValidator()
+		if err != nil {
+			fatal(logger, "failed to initialize validator", err)
+		}
+
+		// initialize scraper
+		songService, err = scraper.NewScraper(f, p, v)
+		if err != nil {
+			fatal(logger, "failed to initialize scraper", err)
+		}
+
 		songService = songmiddleware.LoggingMiddleware(
 			log.With(
 				logger,
@@ -71,7 +92,11 @@ func main() {
 		)(songService)
 
 		// initialize aggregator
-		songService = aggregator.NewService(songService)
+		songService, err = aggregator.NewAggregator(songService)
+		if err != nil {
+			fatal(logger, "failed to initialize aggregator", err)
+		}
+
 		songService = songmiddleware.LoggingMiddleware(
 			log.With(
 				logger,
@@ -83,7 +108,11 @@ func main() {
 	// initialize songs endpoints
 	var songEndpoints *songendpoint.Endpoints
 	{
-		songEndpoints = songendpoint.NewEndpoints(songService)
+		var err error
+		songEndpoints, err = songendpoint.NewEndpoints(songService)
+		if err != nil {
+			fatal(logger, "failed to initialize endpoints", err)
+		}
 	}
 
 	// initialize song http handler

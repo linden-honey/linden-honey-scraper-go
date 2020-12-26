@@ -6,19 +6,19 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
-// aggregator represents the aggregation service implementation
-type aggregator struct {
+// Aggregator represents the aggregation service implementation
+type Aggregator struct {
 	services []song.Service
 }
 
-// NewService returns a pointer to the new instance of aggregator
-func NewService(services ...song.Service) song.Service {
-	return &aggregator{
+// NewAggregator returns a pointer to the new instance of aggregator
+func NewAggregator(services ...song.Service) (*Aggregator, error) {
+	return &Aggregator{
 		services: services,
-	}
+	}, nil
 }
 
-func (a aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) {
+func (a Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) {
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		s, err := svc.GetSong(ctx, id)
@@ -31,7 +31,7 @@ func (a aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) 
 	return nil, newAggregationErr("failed to scrape a song", errs...)
 }
 
-func (a aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
+func (a Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 	res := make([]song.Song, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
@@ -48,7 +48,7 @@ func (a aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 	return res, nil
 }
 
-func (a aggregator) GetPreviews(ctx context.Context) ([]song.Preview, error) {
+func (a Aggregator) GetPreviews(ctx context.Context) ([]song.Preview, error) {
 	res := make([]song.Preview, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {

@@ -2,21 +2,19 @@ package validator
 
 import (
 	extvalidator "github.com/go-playground/validator/v10"
-
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
 )
 
-// validator represents the scraper.Validator implementation
-type validator struct {
+// Validator represents the default validator implementation
+type Validator struct {
 }
 
-// NewValidator returns a pointer to the new instance of validator
-func NewValidator() scraper.Validator {
-	return &validator{}
+// NewValidator returns a pointer to the new instance of Validator
+func NewValidator() (*Validator, error) {
+	return &Validator{}, nil
 }
 
 // Validate returns true if structure is valid
-func (v *validator) Validate(s interface{}) bool {
+func (v *Validator) Validate(s interface{}) bool {
 	//TODO change to interface filed of validator or rewrite validator at all
 	validate := extvalidator.New()
 

@@ -24,27 +24,27 @@ type Validator interface {
 	Validate(s interface{}) bool
 }
 
-// scraper represents the scraper implementation
-type scraper struct {
+// Scraper represents the default scraper implementation
+type Scraper struct {
 	fetcher   Fetcher
 	parser    Parser
 	validator Validator
 }
 
-// NewService returns a pointer to the new instance of scraper
-func NewService(
+// NewScraper returns a pointer to the new instance of scraper
+func NewScraper(
 	fetcher Fetcher,
 	parser Parser,
 	validator Validator,
-) song.Service {
-	return &scraper{
+) (*Scraper, error) {
+	return &Scraper{
 		fetcher:   fetcher,
 		parser:    parser,
 		validator: validator,
-	}
+	}, nil
 }
 
-func (scr *scraper) GetSong(ctx context.Context, id string) (*song.Song, error) {
+func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) {
 	data, err := scr.fetcher.Fetch("text_print.php?area=go_texts&id=%s", id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
@@ -62,7 +62,7 @@ func (scr *scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 	return s, nil
 }
 
-func (scr *scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
+func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 	pp, err := scr.GetPreviews(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get previews: %w", err)
@@ -84,7 +84,7 @@ func (scr *scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 	return ss, nil
 }
 
-func (scr *scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
+func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
 	data, err := scr.fetcher.Fetch("texts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)

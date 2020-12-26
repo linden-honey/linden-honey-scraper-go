@@ -16,12 +16,12 @@ type Endpoints struct {
 }
 
 // NewEndpoints returns a pointer to the new instance of Endpoints
-func NewEndpoints(svc song.Service) *Endpoints {
+func NewEndpoints(svc song.Service) (*Endpoints, error) {
 	return &Endpoints{
 		GetSong:     makeGetSongEndpoint(svc),
 		GetSongs:    makeGetSongsEndpoint(svc),
 		GetPreviews: makeGetPreviewsEndpoint(svc),
-	}
+	}, nil
 }
 
 func makeGetSongEndpoint(svc song.Service) endpoint.Endpoint {

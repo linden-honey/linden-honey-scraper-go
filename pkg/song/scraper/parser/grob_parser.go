@@ -8,20 +8,19 @@ import (
 	"github.com/PuerkitoBio/goquery"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
 )
 
-// grobParser represents the scraper.Parser implementation
-type grobParser struct {
+// GrobParser represents the parser implementation for gr-oborona.ru
+type GrobParser struct {
 }
 
-// NewParser returns a pointer to the new instance of defaultParser
-func NewParser() scraper.Parser {
-	return &grobParser{}
+// NewGrobParser returns a pointer to the new instance of GrobParser
+func NewGrobParser() (*GrobParser, error) {
+	return &GrobParser{}, nil
 }
 
 // parseHTML parse html and returns a pointer to the Document instance
-func (p *grobParser) parseHTML(html string) (*goquery.Document, error) {
+func (p *GrobParser) parseHTML(html string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create document: %w", err)
@@ -31,7 +30,7 @@ func (p *grobParser) parseHTML(html string) (*goquery.Document, error) {
 }
 
 // ParseQuote parses html and returns a pointer to the Quote instance
-func (p *grobParser) ParseQuote(html string) (*song.Quote, error) {
+func (p *GrobParser) ParseQuote(html string) (*song.Quote, error) {
 	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
@@ -47,7 +46,7 @@ func (p *grobParser) ParseQuote(html string) (*song.Quote, error) {
 }
 
 // ParseVerse parses html and returns a pointer to the Verse instance
-func (p *grobParser) ParseVerse(html string) (*song.Verse, error) {
+func (p *GrobParser) ParseVerse(html string) (*song.Verse, error) {
 	quotes := make([]song.Quote, 0)
 	for _, text := range strings.Split(html, "<br/>") {
 		quote, err := p.ParseQuote(text)
@@ -63,7 +62,7 @@ func (p *grobParser) ParseVerse(html string) (*song.Verse, error) {
 }
 
 // ParseVerse parses html and returns a slice of pointers of the Verse instances
-func (p *grobParser) parseLyrics(html string) ([]song.Verse, error) {
+func (p *GrobParser) parseLyrics(html string) ([]song.Verse, error) {
 	verses := make([]song.Verse, 0)
 	re := regexp.MustCompile(`(?:<br/>\s*){2,}`)
 	for _, verseHTML := range re.Split(html, -1) {
@@ -79,7 +78,7 @@ func (p *grobParser) parseLyrics(html string) ([]song.Verse, error) {
 }
 
 // ParseSong parses html and returns a pointer to the Song instance
-func (p *grobParser) ParseSong(html string) (*song.Song, error) {
+func (p *GrobParser) ParseSong(html string) (*song.Song, error) {
 	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
@@ -104,7 +103,7 @@ func (p *grobParser) ParseSong(html string) (*song.Song, error) {
 }
 
 // ParsePreviews parses html and returns a slice of pointers of the Preview instances
-func (p *grobParser) ParsePreviews(html string) ([]song.Preview, error) {
+func (p *GrobParser) ParsePreviews(html string) ([]song.Preview, error) {
 	document, err := p.parseHTML(html)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)

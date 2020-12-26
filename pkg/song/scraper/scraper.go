@@ -21,7 +21,8 @@ type Parser interface {
 
 // Validator represents the validator interface
 type Validator interface {
-	Validate(s interface{}) bool
+	ValidateSong(s song.Song) error
+	ValidatePreview(s song.Preview) error
 }
 
 // Scraper represents the default scraper implementation
@@ -44,7 +45,7 @@ func NewScraper(
 	}, nil
 }
 
-func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) {
+func (scr *Scraper) GetSong(_ context.Context, id string) (*song.Song, error) {
 	data, err := scr.fetcher.Fetch("text_print.php?area=go_texts&id=%s", id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
@@ -55,8 +56,8 @@ func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 		return nil, fmt.Errorf("failed to parse song: %w", err)
 	}
 
-	if !scr.validator.Validate(s) {
-		return nil, fmt.Errorf("song %v is invalid", s)
+	if err := scr.validator.ValidateSong(*s); err != nil {
+		return nil, fmt.Errorf("song %v is invalid: %w", s, err)
 	}
 
 	return s, nil
@@ -95,10 +96,9 @@ func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
 		return nil, fmt.Errorf("failed to parse previews: %w", err)
 	}
 
-	validPP := make([]song.Preview, 0)
 	for _, p := range pp {
-		if scr.validator.Validate(p) {
-			validPP = append(validPP, p)
+		if err := scr.validator.ValidatePreview(p); err != nil {
+			return nil, fmt.Errorf("preview %v is invalid", p)
 		}
 	}
 
@@ -106,5 +106,5 @@ func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
 		return pp[i].Title < pp[j].Title
 	})
 
-	return validPP, nil
+	return pp, nil
 }

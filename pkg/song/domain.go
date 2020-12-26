@@ -2,20 +2,20 @@ package song
 
 // Quote represents a domain object
 type Quote struct {
-	Phrase string `validate:"required" json:"phrase"`
+	Phrase string `json:"phrase"`
 }
 
 // Verse represents a domain object
 type Verse struct {
-	Quotes []Quote `validate:"required" json:"quotes"`
+	Quotes []Quote `json:"quotes"`
 }
 
 // Song represents a domain object
 type Song struct {
-	Title  string  `validate:"required" json:"title"`
+	Title  string  `json:"title"`
 	Author string  `json:"author,omitempty"`
 	Album  string  `json:"album,omitempty"`
-	Verses []Verse `validate:"required" json:"verses"`
+	Verses []Verse `json:"verses"`
 }
 
 // GetQuotes returns all quotes from the song
@@ -28,6 +28,6 @@ func (s *Song) GetQuotes() (quotes []Quote) {
 
 // Preview represents a domain object
 type Preview struct {
-	ID    string `validate:"required" json:"id"`
-	Title string `validate:"required" json:"title"`
+	ID    string `json:"id"`
+	Title string `json:"title"`
 }

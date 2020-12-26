@@ -1,7 +1,9 @@
 package validator
 
 import (
-	extvalidator "github.com/go-playground/validator/v10"
+	"fmt"
+
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
 // Validator represents the default validator implementation
@@ -13,17 +15,46 @@ func NewValidator() (*Validator, error) {
 	return &Validator{}, nil
 }
 
-// Validate returns true if structure is valid
-func (v *Validator) Validate(s interface{}) bool {
-	//TODO change to interface filed of validator or rewrite validator at all
-	validate := extvalidator.New()
-
-	err := validate.Struct(s)
-	isValid := err == nil
-	if !isValid {
-		//TODO return error with readable string representation
-		//validationErrors := err.(validator.ValidationErrors)
+func (v *Validator) ValidateSong(s song.Song) error {
+	if s.Title == "" {
+		return NewMissingRequiredFieldError("title")
 	}
+	if len(s.Verses) == 0 {
+		return NewMissingRequiredFieldError("verses")
+	}
+	for i, v := range s.Verses {
+		if err := validateVerse(v); err != nil {
+			return fmt.Errorf("verses[%d] is invalid: %w", i, err)
+		}
+	}
+	return nil
+}
 
-	return isValid
+func validateVerse(v song.Verse) error {
+	if len(v.Quotes) == 0 {
+		return NewMissingRequiredFieldError("quotes")
+	}
+	for i, q := range v.Quotes {
+		if err := validateQuote(q); err != nil {
+			return fmt.Errorf("quotes[%d] is invalid: %w", i, err)
+		}
+	}
+	return nil
+}
+
+func validateQuote(q song.Quote) error {
+	if q.Phrase == "" {
+		return NewMissingRequiredFieldError("phrase")
+	}
+	return nil
+}
+
+func (v *Validator) ValidatePreview(p song.Preview) error {
+	if p.ID == "" {
+		return NewMissingRequiredFieldError("id")
+	}
+	if p.Title == "" {
+		return NewMissingRequiredFieldError("title")
+	}
+	return nil
 }

@@ -9,6 +9,7 @@ require (
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/http-swagger v0.0.0-20200103000832-0e9263c4b516
 	golang.org/x/text v0.3.2
 )

@@ -17,5 +17,5 @@ func newAggregationErr(msg string, reasons ...error) *aggregationErr {
 }
 
 func (err *aggregationErr) Error() string {
-	return fmt.Sprintf("%s: %v", err.msg, err.reasons)
+	return fmt.Sprintf("%s: %s", err.msg, err.reasons)
 }

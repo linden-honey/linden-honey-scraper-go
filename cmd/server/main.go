@@ -15,19 +15,26 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
-	docssvc "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/service"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/provider"
 	docshttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/transport/http"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/aggregator"
 	songendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
-	songsvc "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/aggregator"
-	songsvcmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/middleware"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/fetcher"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/validator"
+	songmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/middleware"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/validator"
 	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
+
+func fatal(logger log.Logger, prefix string, err error) {
+	err = fmt.Errorf("%s: %w", prefix, err)
+	_ = logger.Log("err", err)
+	os.Exit(1)
+}
 
 func main() {
 	// initialize logger
@@ -39,29 +46,44 @@ func main() {
 	}
 
 	// initialize song service
-	var songService songsvc.Service
+	var songService song.Service
 	{
 		// TODO get URL from configuration
 		u, _ := url.Parse("http://www.gr-oborona.ru")
 
-		// initialize scraper
-		songService = scraper.NewScraper(
-			fetcher.NewDefaultFetcherWithRetry(
-				&fetcher.Properties{
-					BaseURL:        u,
-					SourceEncoding: charmap.Windows1251,
-				},
-				&fetcher.RetryProperties{
-					Retries:    5,
-					Factor:     3,
-					MinTimeout: time.Second * 1,
-					MaxTimeout: time.Second * 6,
-				},
-			),
-			parser.NewDefaultParser(),
-			validator.NewDefaultValidator(),
+		f, err := fetcher.NewFetcherWithRetry(
+			&fetcher.Properties{
+				BaseURL:        u,
+				SourceEncoding: charmap.Windows1251,
+			},
+			&fetcher.RetryProperties{
+				Retries:    5,
+				Factor:     3,
+				MinTimeout: time.Second * 1,
+				MaxTimeout: time.Second * 6,
+			},
 		)
-		songService = songsvcmiddleware.LoggingMiddleware(
+		if err != nil {
+			fatal(logger, "failed to initialize fetcher", err)
+		}
+
+		p, err := parser.NewGrobParser()
+		if err != nil {
+			fatal(logger, "failed to initialize grob parser", err)
+		}
+
+		v, err := validator.NewValidator()
+		if err != nil {
+			fatal(logger, "failed to initialize validator", err)
+		}
+
+		// initialize scraper
+		songService, err = scraper.NewScraper(f, p, v)
+		if err != nil {
+			fatal(logger, "failed to initialize scraper", err)
+		}
+
+		songService = songmiddleware.LoggingMiddleware(
 			log.With(
 				logger,
 				"component", "scraper",
@@ -69,9 +91,13 @@ func main() {
 			),
 		)(songService)
 
-		// initialize aggregator service
-		songService = aggregator.NewAggregator(songService)
-		songService = songsvcmiddleware.LoggingMiddleware(
+		// initialize aggregator
+		songService, err = aggregator.NewAggregator(songService)
+		if err != nil {
+			fatal(logger, "failed to initialize aggregator", err)
+		}
+
+		songService = songmiddleware.LoggingMiddleware(
 			log.With(
 				logger,
 				"component", "aggregator",
@@ -82,7 +108,11 @@ func main() {
 	// initialize songs endpoints
 	var songEndpoints *songendpoint.Endpoints
 	{
-		songEndpoints = songendpoint.NewEndpoints(songService)
+		var err error
+		songEndpoints, err = songendpoint.NewEndpoints(songService)
+		if err != nil {
+			fatal(logger, "failed to initialize endpoints", err)
+		}
 	}
 
 	// initialize song http handler
@@ -96,9 +126,9 @@ func main() {
 	}
 
 	// initialize docs service
-	var docsService docssvc.Service
+	var docsService docs.Service
 	{
-		docsService = docssvc.NewService("./api/openapi-spec/openapi.json")
+		docsService = provider.NewService("./api/openapi-spec/openapi.json")
 	}
 
 	// initialize docs endpoints

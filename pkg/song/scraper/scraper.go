@@ -15,8 +15,8 @@ type Fetcher interface {
 
 // Parser represents the parser interface
 type Parser interface {
-	ParseSong(input string) (*song.Song, error)
-	ParsePreviews(input string) ([]song.Preview, error)
+	ParseSong(in string) (*song.Song, error)
+	ParsePreviews(in string) ([]song.Preview, error)
 }
 
 // Validator represents the validator interface

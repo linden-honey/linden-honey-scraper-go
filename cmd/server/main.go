@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
+	"github.com/linden-honey/linden-honey-scraper-go/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/provider"
@@ -45,54 +47,70 @@ func main() {
 		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 	}
 
+	// initialize config
+	var cfg *config.Config
+	{
+		var err error
+		if cfg, err = config.NewConfig(); err != nil {
+			fatal(logger, "failed to initialize config", err)
+		}
+	}
+
 	// initialize song service
 	var songService song.Service
 	{
-		// TODO get URL from configuration
-		u, _ := url.Parse("http://www.gr-oborona.ru")
+		ss := make([]song.Service, 0)
+		for id, scrCfg := range cfg.Application.Scrapers {
+			u, err := url.Parse(scrCfg.BaseURL)
+			if err != nil {
+				fatal(logger, "failed to parse scraper base url", err)
+			}
 
-		f, err := fetcher.NewFetcherWithRetry(
-			&fetcher.Properties{
-				BaseURL:        u,
-				SourceEncoding: charmap.Windows1251,
-			},
-			&fetcher.RetryProperties{
-				Retries:    5,
-				Factor:     3,
-				MinTimeout: time.Second * 1,
-				MaxTimeout: time.Second * 6,
-			},
-		)
-		if err != nil {
-			fatal(logger, "failed to initialize fetcher", err)
+			f, err := fetcher.NewFetcherWithRetry(
+				&fetcher.Properties{
+					BaseURL:        u,
+					SourceEncoding: charmap.Windows1251,
+				},
+				&fetcher.RetryProperties{
+					Retries:    5,
+					Factor:     3,
+					MinTimeout: time.Second * 1,
+					MaxTimeout: time.Second * 6,
+				},
+			)
+			if err != nil {
+				fatal(logger, "failed to initialize fetcher", err)
+			}
+
+			p, err := parser.NewParser(id)
+			if err != nil {
+				fatal(logger, "failed to initialize parser", err)
+			}
+
+			v, err := validator.NewValidator()
+			if err != nil {
+				fatal(logger, "failed to initialize validator", err)
+			}
+
+			// initialize scraper
+			scr, err := scraper.NewScraper(f, p, v)
+			if err != nil {
+				fatal(logger, "failed to initialize scraper", err)
+			}
+
+			s := songmiddleware.LoggingMiddleware(
+				log.With(
+					logger,
+					"component", "scraper", "scraper_id", id,
+				),
+			)(scr)
+
+			ss = append(ss, s)
 		}
-
-		p, err := parser.NewGrobParser()
-		if err != nil {
-			fatal(logger, "failed to initialize grob parser", err)
-		}
-
-		v, err := validator.NewValidator()
-		if err != nil {
-			fatal(logger, "failed to initialize validator", err)
-		}
-
-		// initialize scraper
-		songService, err = scraper.NewScraper(f, p, v)
-		if err != nil {
-			fatal(logger, "failed to initialize scraper", err)
-		}
-
-		songService = songmiddleware.LoggingMiddleware(
-			log.With(
-				logger,
-				"component", "scraper",
-				"source", u.String(),
-			),
-		)(songService)
 
 		// initialize aggregator
-		songService, err = aggregator.NewAggregator(songService)
+		var err error
+		songService, err = aggregator.NewAggregator(ss...)
 		if err != nil {
 			fatal(logger, "failed to initialize aggregator", err)
 		}
@@ -167,8 +185,16 @@ func main() {
 	}()
 
 	go func() {
-		_ = logger.Log("transport", "http", "addr", "0.0.0.0:8080")
-		errs <- http.ListenAndServe(":8080", router)
+		addr, err := net.ResolveTCPAddr(
+			"",
+			fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
+		)
+		if err != nil {
+			fatal(logger, "failed to resolve addr", err)
+		}
+		_ = logger.Log("transport", "http", "addr", addr.String())
+
+		errs <- http.ListenAndServe(addr.String(), router)
 	}()
 
 	_ = logger.Log("exit", <-errs)

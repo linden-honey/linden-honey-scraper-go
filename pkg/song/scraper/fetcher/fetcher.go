@@ -13,25 +13,6 @@ import (
 	"github.com/gojektech/heimdall/httpclient"
 )
 
-//TODO refactor configuration
-// 1. rename Properties to Config
-// 2. Provide default values
-// 3. Validate required values in constructor
-
-// RetryProperties represents the retry properties structure
-type RetryProperties struct {
-	Retries    int
-	Factor     float64
-	MinTimeout time.Duration
-	MaxTimeout time.Duration
-}
-
-// Properties represents the properties structure
-type Properties struct {
-	BaseURL        *url.URL
-	SourceEncoding *charmap.Charmap
-}
-
 // Fetcher represents the default fetcher implementation
 type Fetcher struct {
 	client         heimdall.Doer
@@ -39,33 +20,68 @@ type Fetcher struct {
 	sourceEncoding *charmap.Charmap
 }
 
+// Config represents common the fetcher configuration
+type Config struct {
+	BaseURL        *url.URL
+	SourceEncoding *charmap.Charmap
+}
+
+func (cfg *Config) Validate() error {
+	if cfg.BaseURL == nil {
+		return fmt.Errorf("BaseURL is required")
+	}
+
+	if cfg.SourceEncoding == nil {
+		return fmt.Errorf("SourceEncoding is required")
+	}
+
+	return nil
+}
+
+// RetryConfig represents the retry configuration
+type RetryConfig struct {
+	Retries           int
+	Factor            float64
+	MinTimeout        time.Duration
+	MaxTimeout        time.Duration
+	MaxJitterInterval time.Duration
+}
+
 // NewFetcher returns a pointer to the new instance of Fetcher
-func NewFetcher(props *Properties) (*Fetcher, error) {
+func NewFetcher(cfg Config) (*Fetcher, error) {
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid fetcher config: %w", err)
+	}
+
 	return &Fetcher{
 		client:         httpclient.NewClient(),
-		baseURL:        props.BaseURL,
-		sourceEncoding: props.SourceEncoding,
+		baseURL:        cfg.BaseURL,
+		sourceEncoding: cfg.SourceEncoding,
 	}, nil
 }
 
 // NewFetcherWithRetry returns a pointer to the new instance of defaultFetcher with retry feature
-func NewFetcherWithRetry(props *Properties, retry *RetryProperties) (*Fetcher, error) {
+func NewFetcherWithRetry(cfg Config, retryCfg RetryConfig) (*Fetcher, error) {
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid fetcher config: %w", err)
+	}
+
 	return &Fetcher{
 		client: httpclient.NewClient(
-			httpclient.WithRetryCount(retry.Retries),
+			httpclient.WithRetryCount(retryCfg.Retries),
 			httpclient.WithRetrier(
 				heimdall.NewRetrier(
 					heimdall.NewExponentialBackoff(
-						retry.MinTimeout,
-						retry.MaxTimeout,
-						retry.Factor,
+						retryCfg.MinTimeout,
+						retryCfg.MaxTimeout,
+						retryCfg.Factor,
 						time.Second,
 					),
 				),
 			),
 		),
-		baseURL:        props.BaseURL,
-		sourceEncoding: props.SourceEncoding,
+		baseURL:        cfg.BaseURL,
+		sourceEncoding: cfg.SourceEncoding,
 	}, nil
 }
 

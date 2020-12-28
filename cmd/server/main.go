@@ -67,11 +67,11 @@ func main() {
 			}
 
 			f, err := fetcher.NewFetcherWithRetry(
-				&fetcher.Properties{
+				fetcher.Config{
 					BaseURL:        u,
 					SourceEncoding: charmap.Windows1251,
 				},
-				&fetcher.RetryProperties{
+				fetcher.RetryConfig{
 					Retries:    5,
 					Factor:     3,
 					MinTimeout: time.Second * 1,

@@ -22,12 +22,13 @@ type Fetcher struct {
 	sourceEncoding *charmap.Charmap
 }
 
-// Config represents common the fetcher configuration
+// Config represents common Fetcher configuration
 type Config struct {
 	BaseURL        *url.URL
 	SourceEncoding *charmap.Charmap
 }
 
+// Validate validates Fetcher configuration
 func (cfg *Config) Validate() error {
 	if cfg.BaseURL == nil {
 		return errors.NewRequiredValueError("BaseURL")
@@ -49,7 +50,7 @@ type RetryConfig struct {
 	MaxJitterInterval time.Duration
 }
 
-// NewFetcher returns a pointer to the new instance of Fetcher
+// NewFetcher returns a pointer to the new instance of Fetcher or an error
 func NewFetcher(cfg Config) (*Fetcher, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid fetcher config: %w", err)
@@ -62,7 +63,7 @@ func NewFetcher(cfg Config) (*Fetcher, error) {
 	}, nil
 }
 
-// NewFetcherWithRetry returns a pointer to the new instance of defaultFetcher with retry feature
+// NewFetcherWithRetry returns a pointer to the new instance of Fetcher with retry or an error
 func NewFetcherWithRetry(cfg Config, retryCfg RetryConfig) (*Fetcher, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid fetcher config: %w", err)

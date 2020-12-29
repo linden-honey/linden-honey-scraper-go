@@ -24,6 +24,7 @@ type loggingMiddleware struct {
 	next   song.Service
 }
 
+// GetSong proxies call to service with logging
 func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "scrape a song",
@@ -47,6 +48,7 @@ func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Son
 	return mw.next.GetSong(ctx, id)
 }
 
+// GetSongs proxies call to service with logging
 func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "start songs scraping",
@@ -67,6 +69,7 @@ func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err e
 	return mw.next.GetSongs(ctx)
 }
 
+// GetPreviews proxies call to service with logging
 func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Preview, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "start previews scraping",

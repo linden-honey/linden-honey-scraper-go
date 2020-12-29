@@ -14,7 +14,7 @@ import (
 type GrobParser struct {
 }
 
-// NewGrobParser returns a pointer to the new instance of GrobParser
+// NewGrobParser returns a pointer to the new instance of GrobParser or an error
 func NewGrobParser() (*GrobParser, error) {
 	return &GrobParser{}, nil
 }
@@ -65,7 +65,7 @@ func (p *GrobParser) ParseVerse(in string) (*song.Verse, error) {
 func (p *GrobParser) parseLyrics(in string) ([]song.Verse, error) {
 	verses := make([]song.Verse, 0)
 	// hint: match nbsp; character (\xA0) that not included in \s group
-	re := regexp.MustCompile(`(?:<br\/>[\s\xA0]*){2,}`)
+	re := regexp.MustCompile(`(?:<br/>[\s\xA0]*){2,}`)
 	for _, verseHTML := range re.Split(in, -1) {
 		verse, err := p.ParseVerse(verseHTML)
 		if err != nil {

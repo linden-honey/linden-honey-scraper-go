@@ -11,13 +11,14 @@ type Aggregator struct {
 	services []song.Service
 }
 
-// NewAggregator returns a pointer to the new instance of aggregator
+// NewAggregator returns a pointer to the new instance of Aggregator or an error
 func NewAggregator(services ...song.Service) (*Aggregator, error) {
 	return &Aggregator{
 		services: services,
 	}, nil
 }
 
+// GetSong returns a pointer to the song or an error from aggregated services
 func (a Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) {
 	errs := make([]error, 0)
 	for _, svc := range a.services {
@@ -31,6 +32,7 @@ func (a Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) 
 	return nil, newAggregationErr("failed to scrape a song", errs...)
 }
 
+// GetSongs returns songs or an error from aggregated services
 func (a Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 	res := make([]song.Song, 0)
 	errs := make([]error, 0)
@@ -48,6 +50,7 @@ func (a Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 	return res, nil
 }
 
+// GetPreviews returns previews or an error from aggregated services
 func (a Aggregator) GetPreviews(ctx context.Context) ([]song.Preview, error) {
 	res := make([]song.Preview, 0)
 	errs := make([]error, 0)

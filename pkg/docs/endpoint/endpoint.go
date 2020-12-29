@@ -9,10 +9,12 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 )
 
+// Endpoints represents endpoints definition
 type Endpoints struct {
 	GetSpec endpoint.Endpoint
 }
 
+// NewEndpoints returns a pointer to the new instance of Endpoints or an error
 func NewEndpoints(svc docs.Service) *Endpoints {
 	return &Endpoints{
 		GetSpec: makeGetSpecEndpoint(svc),

@@ -15,7 +15,7 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
 )
 
-// NewHTTPHandler returns new instance of http.Handler
+// NewHTTPHandler returns the new instance of http.Handler
 func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Logger) http.Handler {
 	opts := []httptransport.ServerOption{
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
@@ -79,7 +79,7 @@ func encodeGetSongResponse(ctx context.Context, w http.ResponseWriter, response 
 	return nil
 }
 
-func decodeGetSongsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeGetSongsRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return endpoint.GetSongsRequest{}, nil
 }
 
@@ -92,7 +92,7 @@ func encodeGetSongsResponse(ctx context.Context, w http.ResponseWriter, response
 	return nil
 }
 
-func decodeGetPreviewsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeGetPreviewsRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return endpoint.GetPreviewsRequest{}, nil
 }
 

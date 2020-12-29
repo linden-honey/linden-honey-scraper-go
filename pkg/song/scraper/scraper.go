@@ -33,7 +33,7 @@ type Scraper struct {
 	validator Validator
 }
 
-// NewScraper returns a pointer to the new instance of scraper
+// NewScraper returns a pointer to the new instance of Scraper or an error
 func NewScraper(
 	fetcher Fetcher,
 	parser Parser,
@@ -46,6 +46,7 @@ func NewScraper(
 	}, nil
 }
 
+// GetSong scrapes a song from some source and returns it or an error
 func (scr *Scraper) GetSong(_ context.Context, id string) (*song.Song, error) {
 	data, err := scr.fetcher.Fetch("text_print.php?area=go_texts&id=%s", id)
 	if err != nil {
@@ -64,6 +65,7 @@ func (scr *Scraper) GetSong(_ context.Context, id string) (*song.Song, error) {
 	return s, nil
 }
 
+// GetSongs scrapes songs from some source and returns them or an error
 func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 	pp, err := scr.GetPreviews(ctx)
 	if err != nil {
@@ -86,6 +88,7 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 	return ss, nil
 }
 
+// GetPreviews scrapes previews from some source and returns them or an error
 func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
 	data, err := scr.fetcher.Fetch("texts")
 	if err != nil {

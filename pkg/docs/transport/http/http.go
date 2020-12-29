@@ -15,6 +15,7 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
 )
 
+// NewHTTPHandler returns the new instance of http.Handler
 func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Logger) http.Handler {
 	opts := []httptransport.ServerOption{
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
@@ -44,7 +45,7 @@ func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Log
 	return r
 }
 
-func decodeGetSpecRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeGetSpecRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return endpoint.GetSpecRequest{}, nil
 }
 
@@ -52,6 +53,6 @@ func encodeGetSpecResponse(ctx context.Context, w http.ResponseWriter, response 
 	res := response.(endpoint.GetSpecResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(res.Spec))
+	_, _ = w.Write([]byte(*res.Spec))
 	return nil
 }

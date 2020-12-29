@@ -148,7 +148,11 @@ func main() {
 	// initialize docs service
 	var docsService docs.Service
 	{
-		docsService = provider.NewService("./api/openapi-spec/openapi.json")
+		var err error
+		docsService, err = provider.NewProvider("./api/openapi-spec/openapi.json")
+		if err != nil {
+			fatal(logger, "failed to initialize docs service", err)
+		}
 	}
 
 	// initialize docs endpoints
@@ -181,7 +185,7 @@ func main() {
 
 	errs := make(chan error)
 	go func() {
-		c := make(chan os.Signal)
+		c := make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 		errs <- fmt.Errorf("%s", <-c)
 	}()

@@ -95,7 +95,7 @@ func (p *GrobParser) ParseSong(in string) (*song.Song, error) {
 
 	verses, err := p.parseLyrics(lyricsHTML)
 	if err != nil {
-
+		return nil, fmt.Errorf("failed to parse lyrics: %w", err)
 	}
 
 	return &song.Song{

@@ -148,7 +148,11 @@ func main() {
 	// initialize docs service
 	var docsService docs.Service
 	{
-		docsService = provider.NewService("./api/openapi-spec/openapi.json")
+		var err error
+		docsService, err = provider.NewProvider("./api/openapi-spec/openapi.json")
+		if err != nil {
+			fatal(logger, "failed to initialize docs service", err)
+		}
 	}
 
 	// initialize docs endpoints

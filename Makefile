@@ -18,6 +18,10 @@ deps:
 .PHONY: prepare
 prepare: deps fmt
 
+.PHONY: run
+run: prepare
+	${GO} run -v ./cmd/server/main.go
+
 .PHONY: build
 build: prepare
 	${GO} build -v $(PACKAGES)

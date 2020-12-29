@@ -11,6 +11,8 @@ import (
 
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
+
+	"github.com/linden-honey/linden-honey-sdk-go/errors"
 )
 
 // Fetcher represents the default fetcher implementation
@@ -28,11 +30,11 @@ type Config struct {
 
 func (cfg *Config) Validate() error {
 	if cfg.BaseURL == nil {
-		return fmt.Errorf("BaseURL is required")
+		return errors.NewRequiredValueError("BaseURL")
 	}
 
 	if cfg.SourceEncoding == nil {
-		return fmt.Errorf("SourceEncoding is required")
+		return errors.NewRequiredValueError("SourceEncoding")
 	}
 
 	return nil
@@ -75,7 +77,7 @@ func NewFetcherWithRetry(cfg Config, retryCfg RetryConfig) (*Fetcher, error) {
 						retryCfg.MinTimeout,
 						retryCfg.MaxTimeout,
 						retryCfg.Factor,
-						time.Second,
+						retryCfg.MaxJitterInterval,
 					),
 				),
 			),

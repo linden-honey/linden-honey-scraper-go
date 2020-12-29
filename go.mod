@@ -8,7 +8,7 @@ require (
 	github.com/gojektech/heimdall v5.0.2+incompatible
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
 	github.com/gorilla/mux v1.7.3
-	github.com/linden-honey/linden-honey-sdk-go v0.0.1
+	github.com/linden-honey/linden-honey-sdk-go v0.0.3
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.6.1

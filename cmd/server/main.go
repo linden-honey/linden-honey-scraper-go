@@ -16,6 +16,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
+	"github.com/linden-honey/linden-honey-sdk-go/validation"
+
 	"github.com/linden-honey/linden-honey-scraper-go/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
@@ -28,7 +30,6 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/fetcher"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/parser"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/validator"
 	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
 
@@ -72,10 +73,11 @@ func main() {
 					SourceEncoding: charmap.Windows1251,
 				},
 				fetcher.RetryConfig{
-					Retries:    5,
-					Factor:     3,
-					MinTimeout: time.Second * 1,
-					MaxTimeout: time.Second * 6,
+					Retries:           5,
+					Factor:            3,
+					MinTimeout:        time.Second * 1,
+					MaxTimeout:        time.Second * 6,
+					MaxJitterInterval: time.Second,
 				},
 			)
 			if err != nil {
@@ -87,7 +89,7 @@ func main() {
 				fatal(logger, "failed to initialize parser", err)
 			}
 
-			v, err := validator.NewValidator()
+			v, err := validation.NewDelegate()
 			if err != nil {
 				fatal(logger, "failed to initialize validator", err)
 			}

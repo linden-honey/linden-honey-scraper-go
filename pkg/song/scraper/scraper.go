@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/linden-honey/linden-honey-sdk-go/validation"
+
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
@@ -21,8 +23,7 @@ type Parser interface {
 
 // Validator represents the validator interface
 type Validator interface {
-	ValidateSong(s song.Song) error
-	ValidatePreview(s song.Preview) error
+	Validate(in validation.Validator) error
 }
 
 // Scraper represents the default scraper implementation
@@ -56,7 +57,7 @@ func (scr *Scraper) GetSong(_ context.Context, id string) (*song.Song, error) {
 		return nil, fmt.Errorf("failed to parse song: %w", err)
 	}
 
-	if err := scr.validator.ValidateSong(*s); err != nil {
+	if err := scr.validator.Validate(s); err != nil {
 		return nil, fmt.Errorf("song %v is invalid: %w", s, err)
 	}
 
@@ -97,7 +98,7 @@ func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
 	}
 
 	for _, p := range pp {
-		if err := scr.validator.ValidatePreview(p); err != nil {
+		if err := scr.validator.Validate(p); err != nil {
 			return nil, fmt.Errorf("preview %v is invalid", p)
 		}
 	}

@@ -6,7 +6,7 @@ on:
 
 jobs:
   pipeline:
-    name: pipiline(${{ matrix.module.name }})
+    name: pipiline
     runs-on: ubuntu-latest
 
     steps:

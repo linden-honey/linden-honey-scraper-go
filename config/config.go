@@ -49,7 +49,7 @@ func NewConfig() (cfg *Config, err error) {
 			},
 		},
 		Server: ServerConfig{
-			Host: env.GetEnv("SERVER_HOST", "127.0.0.1"),
+			Host: env.GetEnv("SERVER_HOST", "0.0.0.0"),
 			Port: cast.ToInt(env.GetEnv("SERVER_PORT", "8080")),
 		},
 	}

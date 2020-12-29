@@ -14,8 +14,8 @@ type Provider struct {
 	specPath string
 }
 
-// NewService returns a pointer to the new instance of Provider or an error
-func NewService(specPath string) (*Provider, error) {
+// NewProvider returns a pointer to the new instance of Provider or an error
+func NewProvider(specPath string) (*Provider, error) {
 	return &Provider{
 		specPath: specPath,
 	}, nil

@@ -10,6 +10,3 @@ type Service interface {
 	GetSongs(ctx context.Context) ([]Song, error)
 	GetPreviews(ctx context.Context) ([]Preview, error)
 }
-
-// Middleware represents the service layer middleware
-type Middleware func(Service) Service

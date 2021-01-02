@@ -10,7 +10,7 @@ import (
 )
 
 // LoggingMiddleware returns logging middleware for scraper service
-func LoggingMiddleware(logger log.Logger) song.Middleware {
+func LoggingMiddleware(logger log.Logger) Middleware {
 	return func(next song.Service) song.Service {
 		return loggingMiddleware{
 			logger: logger,
@@ -27,19 +27,19 @@ type loggingMiddleware struct {
 // GetSong proxies call to service with logging
 func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
-		"msg", "scrape a song",
+		"msg", "getting еру song",
 		"song_id", id,
 	)
 	defer func() {
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
-				"msg", "successfully scraped a song",
+				"msg", "successfully got a song",
 				"song_id", id,
 				"song_title", s.Title,
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(
-				"msg", "failed to scrape a song",
+				"msg", "failed to get a song",
 				"song_id", id,
 				"err", err,
 			)
@@ -51,17 +51,17 @@ func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Son
 // GetSongs proxies call to service with logging
 func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
-		"msg", "start songs scraping",
+		"msg", "getting songs",
 	)
 	defer func() {
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
-				"msg", "songs scraping successfully finished",
+				"msg", "successfully got songs",
 				"res_count", len(ss),
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(
-				"msg", "songs scraping failed",
+				"msg", "failed to get songs",
 				"err", err,
 			)
 		}
@@ -72,17 +72,17 @@ func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err e
 // GetPreviews proxies call to service with logging
 func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Preview, err error) {
 	_ = level.Debug(mw.logger).Log(
-		"msg", "start previews scraping",
+		"msg", "getting previews",
 	)
 	defer func() {
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
-				"msg", "previews scraping successfully finished",
+				"msg", "successfully got previews",
 				"res_count", len(pp),
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(
-				"msg", "previews scraping failed",
+				"msg", "failed to get previews",
 				"err", err,
 			)
 		}

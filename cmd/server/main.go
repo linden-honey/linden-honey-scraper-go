@@ -100,10 +100,12 @@ func main() {
 				fatal(logger, "failed to initialize scraper", err)
 			}
 
-			s := songmiddleware.LoggingMiddleware(
-				log.With(
-					logger,
-					"component", "scraper", "scraper_id", id,
+			s := songmiddleware.Compose(
+				songmiddleware.LoggingMiddleware(
+					log.With(
+						logger,
+						"component", "scraper", "scraper_id", id,
+					),
 				),
 			)(scr)
 
@@ -117,10 +119,12 @@ func main() {
 			fatal(logger, "failed to initialize aggregator", err)
 		}
 
-		songService = songmiddleware.LoggingMiddleware(
-			log.With(
-				logger,
-				"component", "aggregator",
+		songService = songmiddleware.Compose(
+			songmiddleware.LoggingMiddleware(
+				log.With(
+					logger,
+					"component", "aggregator",
+				),
 			),
 		)(songService)
 	}

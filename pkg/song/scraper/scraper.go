@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/linden-honey/linden-honey-sdk-go/validation"
-
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-sdk-go/validation"
 )
 
 // Fetcher represents the content fetcher interface
@@ -72,13 +71,32 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 		return nil, fmt.Errorf("failed to get previews: %w", err)
 	}
 
-	ss := make([]song.Song, 0)
+	sc := make(chan song.Song, len(pp))
+	errc := make(chan error, 1)
 	for _, p := range pp {
-		s, err := scr.GetSong(ctx, p.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get song with id %s", p.ID)
+		go func(id string) {
+			s, err := scr.GetSong(ctx, id)
+			if err != nil {
+				errc <- fmt.Errorf("failed to get song with id %s: %w", id, err)
+				return
+			}
+
+			sc <- *s
+		}(p.ID)
+	}
+
+	ss := make([]song.Song, 0, len(pp))
+loop:
+	for {
+		select {
+		case s := <-sc:
+			ss = append(ss, s)
+			if len(ss) == len(pp) {
+				break loop
+			}
+		case err := <-errc:
+			return nil, err
 		}
-		ss = append(ss, *s)
 	}
 
 	sort.SliceStable(ss, func(i, j int) bool {

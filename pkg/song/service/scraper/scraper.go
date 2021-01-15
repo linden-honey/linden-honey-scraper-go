@@ -54,11 +54,11 @@ func (scr *Scraper) GetSong(_ context.Context, id string) (*song.Song, error) {
 
 	s, err := scr.parser.ParseSong(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse song: %w", err)
+		return nil, fmt.Errorf("failed to parse a song: %w", err)
 	}
 
 	if err := scr.validator.Validate(s); err != nil {
-		return nil, fmt.Errorf("song %v is invalid: %w", s, err)
+		return nil, fmt.Errorf("failed to validate a song %v: %w", s, err)
 	}
 
 	return s, nil
@@ -77,7 +77,7 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 		go func(id string) {
 			s, err := scr.GetSong(ctx, id)
 			if err != nil {
-				errc <- fmt.Errorf("failed to get song with id %s: %w", id, err)
+				errc <- fmt.Errorf("failed to get a song with id %s: %w", id, err)
 				return
 			}
 
@@ -120,7 +120,7 @@ func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
 
 	for _, p := range pp {
 		if err := scr.validator.Validate(p); err != nil {
-			return nil, fmt.Errorf("preview %v is invalid", p)
+			return nil, fmt.Errorf("failed to validate a preview %v: %w", p, err)
 		}
 	}
 

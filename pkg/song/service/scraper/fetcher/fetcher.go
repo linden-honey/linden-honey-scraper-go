@@ -92,12 +92,12 @@ func NewFetcherWithRetry(cfg Config, retryCfg RetryConfig) (*Fetcher, error) {
 func (f *Fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
 	fetchURL, err := f.baseURL.Parse(fmt.Sprintf(pathFormat, args...))
 	if err != nil {
-		return "", fmt.Errorf("failed to parse URL: %w", err)
+		return "", fmt.Errorf("failed to parse an URL: %w", err)
 	}
 
 	req, err := http.NewRequest(http.MethodGet, fetchURL.String(), nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", fmt.Errorf("failed to create a request: %w", err)
 	}
 	req.Header = http.Header{
 		"User-Agent": []string{
@@ -118,7 +118,7 @@ func (f *Fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) 
 	decoder := f.sourceEncoding.NewDecoder()
 	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
 	if err != nil {
-		return "", fmt.Errorf("failed to read response: %w", err)
+		return "", fmt.Errorf("failed to read a response: %w", err)
 	}
 
 	return string(body), nil

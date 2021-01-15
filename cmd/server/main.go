@@ -53,7 +53,7 @@ func main() {
 	{
 		var err error
 		if cfg, err = config.NewConfig(); err != nil {
-			fatal(logger, "failed to initialize config", err)
+			fatal(logger, "failed to initialize a config", err)
 		}
 	}
 
@@ -81,23 +81,23 @@ func main() {
 				},
 			)
 			if err != nil {
-				fatal(logger, "failed to initialize fetcher", err)
+				fatal(logger, "failed to initialize a fetcher", err)
 			}
 
 			p, err := parser.NewParser(id)
 			if err != nil {
-				fatal(logger, "failed to initialize parser", err)
+				fatal(logger, "failed to initialize a parser", err)
 			}
 
 			v, err := validation.NewDelegate()
 			if err != nil {
-				fatal(logger, "failed to initialize validator", err)
+				fatal(logger, "failed to initialize a validator", err)
 			}
 
 			// initialize scraper
 			scr, err := scraper.NewScraper(f, p, v)
 			if err != nil {
-				fatal(logger, "failed to initialize scraper", err)
+				fatal(logger, "failed to initialize a scraper", err)
 			}
 
 			s := song.Compose(
@@ -116,7 +116,7 @@ func main() {
 		var err error
 		songService, err = aggregator.NewAggregator(ss...)
 		if err != nil {
-			fatal(logger, "failed to initialize aggregator", err)
+			fatal(logger, "failed to initialize an aggregator", err)
 		}
 
 		songService = song.Compose(
@@ -155,7 +155,7 @@ func main() {
 		var err error
 		docsService, err = provider.NewProvider("./api/openapi-spec/openapi.json")
 		if err != nil {
-			fatal(logger, "failed to initialize docs service", err)
+			fatal(logger, "failed to initialize docs provider", err)
 		}
 	}
 
@@ -200,7 +200,7 @@ func main() {
 			fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
 		)
 		if err != nil {
-			fatal(logger, "failed to resolve addr", err)
+			fatal(logger, "failed to resolve an addr", err)
 		}
 		_ = logger.Log("transport", "http", "addr", addr.String())
 

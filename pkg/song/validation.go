@@ -23,7 +23,7 @@ func (v Verse) Validate() error {
 
 	for i, q := range v.Quotes {
 		if err := q.Validate(); err != nil {
-			return fmt.Errorf("quotes[%d] is invalid: %w", i, err)
+			return fmt.Errorf("'Quotes[%d]' is invalid: %w", i, err)
 		}
 	}
 
@@ -33,7 +33,7 @@ func (v Verse) Validate() error {
 // Validate validates a Song and returns an error if validation is failed
 func (s Song) Validate() error {
 	if s.Title == "" {
-		return errors.NewRequiredValueError("field 'Quotes' is required")
+		return errors.NewRequiredValueError("Title")
 	}
 
 	if len(s.Verses) == 0 {
@@ -42,7 +42,7 @@ func (s Song) Validate() error {
 
 	for i, v := range s.Verses {
 		if err := v.Validate(); err != nil {
-			return fmt.Errorf("verses[%d] is invalid: %w", i, err)
+			return fmt.Errorf("'Verses[%d]' is invalid: %w", i, err)
 		}
 	}
 

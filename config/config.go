@@ -34,7 +34,7 @@ type ScraperConfig struct {
 func NewConfig() (cfg *Config, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("failed to build config: %s", r)
+			err = fmt.Errorf("failed to build a config: %s", r)
 		}
 	}()
 

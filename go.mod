@@ -1,6 +1,7 @@
 module github.com/linden-honey/linden-honey-scraper-go
 
 go 1.15
+
 // +heroku goVersion go1.15
 
 require (

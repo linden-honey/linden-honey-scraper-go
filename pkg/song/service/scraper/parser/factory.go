@@ -3,7 +3,7 @@ package parser
 import (
 	"errors"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper"
 )
 
 // NewParser factory function that returns scraper.Parser instance by id

@@ -1,15 +1,11 @@
-package middleware
-
-import (
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
-)
+package song
 
 // Middleware represents the service layer middleware
-type Middleware func(song.Service) song.Service
+type Middleware func(Service) Service
 
 // Compose composes middlewares into a single one
 func Compose(mws ...Middleware) Middleware {
-	return func(svc song.Service) song.Service {
+	return func(svc Service) Service {
 		for _, mw := range mws {
 			svc = mw(svc)
 		}

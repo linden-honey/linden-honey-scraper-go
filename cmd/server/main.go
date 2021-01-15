@@ -21,15 +21,15 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/provider"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/service/provider"
 	docshttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/transport/http"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/aggregator"
 	songendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
 	songmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/middleware"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/fetcher"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/aggregator"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
 	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
 
@@ -100,7 +100,7 @@ func main() {
 				fatal(logger, "failed to initialize scraper", err)
 			}
 
-			s := songmiddleware.Compose(
+			s := song.Compose(
 				songmiddleware.LoggingMiddleware(
 					log.With(
 						logger,
@@ -119,7 +119,7 @@ func main() {
 			fatal(logger, "failed to initialize aggregator", err)
 		}
 
-		songService = songmiddleware.Compose(
+		songService = song.Compose(
 			songmiddleware.LoggingMiddleware(
 				log.With(
 					logger,

@@ -10,7 +10,7 @@ import (
 )
 
 // LoggingMiddleware returns logging middleware for scraper service
-func LoggingMiddleware(logger log.Logger) Middleware {
+func LoggingMiddleware(logger log.Logger) song.Middleware {
 	return func(next song.Service) song.Service {
 		return loggingMiddleware{
 			logger: logger,

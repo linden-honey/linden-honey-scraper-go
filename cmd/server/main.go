@@ -187,12 +187,7 @@ func main() {
 		router.PathPrefix("/").Handler(docsHTTPHandler)
 	}
 
-	errs := make(chan error)
-	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		errs <- fmt.Errorf("%s", <-c)
-	}()
+	errc := make(chan error)
 
 	go func() {
 		addr, err := net.ResolveTCPAddr(
@@ -202,10 +197,16 @@ func main() {
 		if err != nil {
 			fatal(logger, "failed to resolve an addr", err)
 		}
-		_ = logger.Log("transport", "http", "addr", addr.String())
 
-		errs <- http.ListenAndServe(addr.String(), router)
+		_ = logger.Log("msg", "server started", "transport", "http", "addr", addr.String())
+		errc <- http.ListenAndServe(addr.String(), router)
 	}()
 
-	_ = logger.Log("exit", <-errs)
+	go func() {
+		sigc := make(chan os.Signal, 1)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+		errc <- fmt.Errorf("%s", <-sigc)
+	}()
+
+	_ = logger.Log("exit", <-errc)
 }

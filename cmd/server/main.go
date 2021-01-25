@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -187,19 +186,12 @@ func main() {
 		router.PathPrefix("/").Handler(docsHTTPHandler)
 	}
 
-	errc := make(chan error)
+	errc := make(chan error, 1)
 
 	go func() {
-		addr, err := net.ResolveTCPAddr(
-			"",
-			fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
-		)
-		if err != nil {
-			fatal(logger, "failed to resolve an addr", err)
-		}
-
-		_ = logger.Log("msg", "server started", "transport", "http", "addr", addr.String())
-		errc <- http.ListenAndServe(addr.String(), router)
+		addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+		_ = logger.Log("msg", "server started", "transport", "http", "addr", addr)
+		errc <- http.ListenAndServe(addr, router)
 	}()
 
 	go func() {

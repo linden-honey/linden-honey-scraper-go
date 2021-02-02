@@ -32,9 +32,8 @@ import (
 	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
 
-func fatal(logger log.Logger, prefix string, err error) {
-	err = fmt.Errorf("%s: %w", prefix, err)
-	_ = logger.Log("err", err)
+func fatal(logger log.Logger, err error) {
+	_ = logger.Log("err: %w", err)
 	os.Exit(1)
 }
 
@@ -52,7 +51,7 @@ func main() {
 	{
 		var err error
 		if cfg, err = config.NewConfig(); err != nil {
-			fatal(logger, "failed to initialize a config", err)
+			fatal(logger, fmt.Errorf("failed to initialize a config: %w", err))
 		}
 	}
 
@@ -63,7 +62,7 @@ func main() {
 		for id, scrCfg := range cfg.Application.Scrapers {
 			u, err := url.Parse(scrCfg.BaseURL)
 			if err != nil {
-				fatal(logger, "failed to parse scraper base url", err)
+				fatal(logger, fmt.Errorf("failed to parse scraper base url: %w", err))
 			}
 
 			f, err := fetcher.NewFetcherWithRetry(
@@ -80,23 +79,23 @@ func main() {
 				},
 			)
 			if err != nil {
-				fatal(logger, "failed to initialize a fetcher", err)
+				fatal(logger, fmt.Errorf("failed to initialize a fetcher: %w", err))
 			}
 
 			p, err := parser.NewParser(id)
 			if err != nil {
-				fatal(logger, "failed to initialize a parser", err)
+				fatal(logger, fmt.Errorf("failed to initialize a parser: %w", err))
 			}
 
 			v, err := validation.NewDelegate()
 			if err != nil {
-				fatal(logger, "failed to initialize a validator", err)
+				fatal(logger, fmt.Errorf("failed to initialize a validator: %w", err))
 			}
 
 			// initialize scraper
 			scr, err := scraper.NewScraper(f, p, v)
 			if err != nil {
-				fatal(logger, "failed to initialize a scraper", err)
+				fatal(logger, fmt.Errorf("failed to initialize a scraper: %w", err))
 			}
 
 			s := song.Compose(
@@ -115,7 +114,7 @@ func main() {
 		var err error
 		songService, err = aggregator.NewAggregator(ss...)
 		if err != nil {
-			fatal(logger, "failed to initialize an aggregator", err)
+			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
 		}
 
 		songService = song.Compose(
@@ -134,7 +133,7 @@ func main() {
 		var err error
 		songEndpoints, err = songendpoint.NewEndpoints(songService)
 		if err != nil {
-			fatal(logger, "failed to initialize endpoints", err)
+			fatal(logger, fmt.Errorf("failed to initialize endpoints: %w", err))
 		}
 	}
 
@@ -154,7 +153,7 @@ func main() {
 		var err error
 		docsService, err = provider.NewProvider("./api/openapi-spec/openapi.json")
 		if err != nil {
-			fatal(logger, "failed to initialize docs provider", err)
+			fatal(logger, fmt.Errorf("failed to initialize docs provider: %w", err))
 		}
 	}
 

@@ -9,7 +9,7 @@ import (
 // NewParser factory function that returns scraper.Parser instance by id
 func NewParser(id string) (scraper.Parser, error) {
 	switch id {
-	case "grob":
+	case GrobParserID:
 		return NewGrobParser()
 	default:
 		return nil, errors.New("unknown parser")

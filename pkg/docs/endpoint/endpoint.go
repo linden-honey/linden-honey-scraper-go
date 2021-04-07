@@ -14,14 +14,7 @@ type Endpoints struct {
 	GetSpec endpoint.Endpoint
 }
 
-// NewEndpoints returns a pointer to the new instance of Endpoints or an error
-func NewEndpoints(svc docs.Service) *Endpoints {
-	return &Endpoints{
-		GetSpec: makeGetSpecEndpoint(svc),
-	}
-}
-
-func makeGetSpecEndpoint(svc docs.Service) endpoint.Endpoint {
+func MakeGetSpecEndpoint(svc docs.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		_ = request.(GetSpecRequest)
 		spec, err := svc.GetSpec(ctx)

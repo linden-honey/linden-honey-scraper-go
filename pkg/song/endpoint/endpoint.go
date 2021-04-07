@@ -15,16 +15,7 @@ type Endpoints struct {
 	GetPreviews endpoint.Endpoint
 }
 
-// NewEndpoints returns a pointer to the new instance of Endpoints or an error
-func NewEndpoints(svc song.Service) (*Endpoints, error) {
-	return &Endpoints{
-		GetSong:     makeGetSongEndpoint(svc),
-		GetSongs:    makeGetSongsEndpoint(svc),
-		GetPreviews: makeGetPreviewsEndpoint(svc),
-	}, nil
-}
-
-func makeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
+func MakeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(GetSongRequest)
 
@@ -39,7 +30,7 @@ func makeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
 	}
 }
 
-func makeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
+func MakeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		_ = request.(GetSongsRequest)
 
@@ -54,7 +45,7 @@ func makeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
 	}
 }
 
-func makeGetPreviewsEndpoint(svc song.Service) endpoint.Endpoint {
+func MakeGetPreviewsEndpoint(svc song.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		_ = request.(GetPreviewsRequest)
 

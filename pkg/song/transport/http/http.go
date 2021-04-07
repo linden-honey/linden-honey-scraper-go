@@ -16,7 +16,7 @@ import (
 )
 
 // NewHTTPHandler returns the new instance of http.Handler
-func NewHTTPHandler(prefix string, endpoints *endpoint.Endpoints, logger log.Logger) http.Handler {
+func NewHTTPHandler(prefix string, endpoints endpoint.Endpoints, logger log.Logger) http.Handler {
 	opts := []httptransport.ServerOption{
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
 	}

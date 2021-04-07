@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/linden-honey/linden-honey-sdk-go/env"
+
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
 )
 
 // Config represents the root configuration
@@ -41,7 +43,7 @@ func NewConfig() (cfg *Config, err error) {
 	cfg = &Config{
 		Application: ApplicationConfig{
 			Scrapers: map[string]ScraperConfig{
-				"grob": {
+				parser.GrobParserID: {
 					BaseURL: env.GetEnv(
 						"APPLICATION_SCRAPERS_GROB_BASE_URL", "http://www.gr-oborona.ru/",
 					),

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-go/pkg/song"
 	"github.com/linden-honey/linden-honey-sdk-go/validation"
 )
 
@@ -66,14 +66,14 @@ func (scr *Scraper) GetSong(_ context.Context, id string) (*song.Song, error) {
 
 // GetSongs scrapes songs from some source and returns them or an error
 func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
-	pp, err := scr.GetPreviews(ctx)
+	previews, err := scr.GetPreviews(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get previews: %w", err)
 	}
 
-	sc := make(chan song.Song, len(pp))
+	songc := make(chan song.Song, len(previews))
 	errc := make(chan error, 1)
-	for _, p := range pp {
+	for _, p := range previews {
 		go func(id string) {
 			s, err := scr.GetSong(ctx, id)
 			if err != nil {
@@ -81,17 +81,17 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 				return
 			}
 
-			sc <- *s
+			songc <- *s
 		}(p.ID)
 	}
 
-	ss := make([]song.Song, 0, len(pp))
+	songs := make([]song.Song, 0, len(previews))
 loop:
 	for {
 		select {
-		case s := <-sc:
-			ss = append(ss, s)
-			if len(ss) == len(pp) {
+		case s := <-songc:
+			songs = append(songs, s)
+			if len(songs) == len(previews) {
 				break loop
 			}
 		case err := <-errc:
@@ -99,11 +99,11 @@ loop:
 		}
 	}
 
-	sort.SliceStable(ss, func(i, j int) bool {
-		return ss[i].Title < ss[j].Title
+	sort.SliceStable(songs, func(i, j int) bool {
+		return songs[i].Title < songs[j].Title
 	})
 
-	return ss, nil
+	return songs, nil
 }
 
 // GetPreviews scrapes previews from some source and returns them or an error
@@ -113,20 +113,20 @@ func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	pp, err := scr.parser.ParsePreviews(data)
+	previews, err := scr.parser.ParsePreviews(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse previews: %w", err)
 	}
 
-	for _, p := range pp {
+	for _, p := range previews {
 		if err := scr.validator.Validate(p); err != nil {
 			return nil, fmt.Errorf("failed to validate a preview %v: %w", p, err)
 		}
 	}
 
-	sort.SliceStable(pp, func(i, j int) bool {
-		return pp[i].Title < pp[j].Title
+	sort.SliceStable(previews, func(i, j int) bool {
+		return previews[i].Title < previews[j].Title
 	})
 
-	return pp, nil
+	return previews, nil
 }

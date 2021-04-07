@@ -7,7 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-go/pkg/song"
 )
 
 // GrobParser represents the parser implementation for gr-oborona.ru

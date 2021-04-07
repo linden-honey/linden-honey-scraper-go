@@ -9,6 +9,11 @@ GOLANGCI_LINT_VERSION		?= 1.29.0
 PACKAGES					?= ./...
 GO_COVER_PROFILE			?= coverage.out
 
+DOCKER_IMAGE_REGISTRY		?= docker.io/library
+DOCKER_IMAGE_REPOSITORY		?= lindenhoney/linden-honey-scraper-go
+DOCKER_IMAGE_TAG			?= latest
+DOCKER_IMAGE				?= $(DOCKER_IMAGE_REGISTRY)/$(DOCKER_IMAGE_REPOSITORY):$(DOCKER_IMAGE_TAG)
+
 ifeq ($(MODE),docker)
 	GO_DOCKER_IMAGE 				:= library/golang:$(GO_VERSION)
 	GO 								:= @docker run --rm -v $(CURDIR):/app -v $(GOPATH)/pkg/mod:/go/pkg/mod -w /app $(GO_DOCKER_IMAGE) go
@@ -55,3 +60,11 @@ coverage: test
 .PHONY: lint
 lint: prepare
 	$(GOLANGCI_LINT) run -v
+
+.PHONY: docker/build
+docker/build:
+	@docker build -t $(DOCKER_IMAGE) .
+
+.PHONY: docker/push
+docker/push:
+	@docker push $(DOCKER_IMAGE)

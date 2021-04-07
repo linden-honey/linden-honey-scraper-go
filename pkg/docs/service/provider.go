@@ -1,4 +1,4 @@
-package provider
+package service
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func (sp *Provider) GetSpec(_ context.Context) (*docs.Spec, error) {
 	if sp.spec == nil {
 		specBytes, err := ioutil.ReadFile(sp.specPath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read spec file: %w", err)
+			return nil, fmt.Errorf("failed to read a spec file: %w", err)
 		}
 
 		spec := docs.Spec(specBytes)

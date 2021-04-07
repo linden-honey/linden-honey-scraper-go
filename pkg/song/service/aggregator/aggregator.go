@@ -3,6 +3,7 @@ package aggregator
 import (
 	"context"
 
+	domain "github.com/linden-honey/linden-honey-go/pkg/song"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
@@ -19,7 +20,7 @@ func NewAggregator(services ...song.Service) (*Aggregator, error) {
 }
 
 // GetSong returns a pointer to the song or an error from aggregated services
-func (a Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) {
+func (a Aggregator) GetSong(ctx context.Context, id string) (*domain.Song, error) {
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		s, err := svc.GetSong(ctx, id)
@@ -27,14 +28,16 @@ func (a Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) 
 			errs = append(errs, err)
 			continue
 		}
+
 		return s, nil
 	}
+
 	return nil, newAggregationErr("failed to scrape a song", errs...)
 }
 
 // GetSongs returns songs or an error from aggregated services
-func (a Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
-	res := make([]song.Song, 0)
+func (a Aggregator) GetSongs(ctx context.Context) ([]domain.Song, error) {
+	out := make([]domain.Song, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		ss, err := svc.GetSongs(ctx)
@@ -42,28 +45,34 @@ func (a Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 			errs = append(errs, err)
 			continue
 		}
-		res = append(res, ss...)
+
+		out = append(out, ss...)
 	}
+
 	if len(errs) != 0 {
 		return nil, newAggregationErr("failed to aggregate scraped songs", errs...)
 	}
-	return res, nil
+
+	return out, nil
 }
 
 // GetPreviews returns previews or an error from aggregated services
-func (a Aggregator) GetPreviews(ctx context.Context) ([]song.Preview, error) {
-	res := make([]song.Preview, 0)
+func (a Aggregator) GetPreviews(ctx context.Context) ([]domain.Preview, error) {
+	out := make([]domain.Preview, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
-		pp, err := svc.GetPreviews(ctx)
+		previews, err := svc.GetPreviews(ctx)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
-		res = append(res, pp...)
+
+		out = append(out, previews...)
 	}
+
 	if len(errs) != 0 {
 		return nil, newAggregationErr("failed to aggregate scraped previews", errs...)
 	}
-	return res, nil
+
+	return out, nil
 }

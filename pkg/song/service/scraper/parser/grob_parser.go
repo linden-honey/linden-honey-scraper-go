@@ -7,7 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-go/pkg/song"
 )
 
 // GrobParser represents the parser implementation for gr-oborona.ru
@@ -23,7 +23,7 @@ func NewGrobParser() (*GrobParser, error) {
 func (p *GrobParser) parseHTML(in string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(in))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create document: %w", err)
+		return nil, fmt.Errorf("failed to create a document: %w", err)
 	}
 
 	return document, err
@@ -51,7 +51,7 @@ func (p *GrobParser) ParseVerse(in string) (*song.Verse, error) {
 	for _, text := range strings.Split(in, "<br/>") {
 		quote, err := p.ParseQuote(text)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse quote: %w", err)
+			return nil, fmt.Errorf("failed to parse a quote: %w", err)
 		}
 		quotes = append(quotes, *quote)
 	}
@@ -69,7 +69,7 @@ func (p *GrobParser) parseLyrics(in string) ([]song.Verse, error) {
 	for _, verseHTML := range re.Split(in, -1) {
 		verse, err := p.ParseVerse(verseHTML)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse verse: %w", err)
+			return nil, fmt.Errorf("failed to parse a verse: %w", err)
 		}
 
 		verses = append(verses, *verse)

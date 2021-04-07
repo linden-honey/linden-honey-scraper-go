@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -21,21 +20,20 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/provider"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/service"
 	docshttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/transport/http"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/aggregator"
 	songendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
-	songmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/middleware"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/fetcher"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/scraper/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/aggregator"
+	songsvcmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/middleware"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
 	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
 )
 
-func fatal(logger log.Logger, prefix string, err error) {
-	err = fmt.Errorf("%s: %w", prefix, err)
-	_ = logger.Log("err", err)
+func fatal(logger log.Logger, err error) {
+	_ = logger.Log("err: %w", err)
 	os.Exit(1)
 }
 
@@ -53,55 +51,55 @@ func main() {
 	{
 		var err error
 		if cfg, err = config.NewConfig(); err != nil {
-			fatal(logger, "failed to initialize config", err)
+			fatal(logger, fmt.Errorf("failed to initialize a config: %w", err))
 		}
 	}
 
 	// initialize song service
-	var songService song.Service
+	var songSvc song.Service
 	{
 		ss := make([]song.Service, 0)
 		for id, scrCfg := range cfg.Application.Scrapers {
 			u, err := url.Parse(scrCfg.BaseURL)
 			if err != nil {
-				fatal(logger, "failed to parse scraper base url", err)
+				fatal(logger, fmt.Errorf("failed to parse scraper base url: %w", err))
 			}
 
-			f, err := fetcher.NewFetcherWithRetry(
+			f, err := fetcher.NewFetcher(
 				fetcher.Config{
 					BaseURL:        u,
 					SourceEncoding: charmap.Windows1251,
 				},
-				fetcher.RetryConfig{
+				fetcher.WithRetry(fetcher.RetryConfig{
 					Retries:           5,
 					Factor:            3,
 					MinTimeout:        time.Second * 1,
 					MaxTimeout:        time.Second * 6,
 					MaxJitterInterval: time.Second,
-				},
+				}),
 			)
 			if err != nil {
-				fatal(logger, "failed to initialize fetcher", err)
+				fatal(logger, fmt.Errorf("failed to initialize a fetcher: %w", err))
 			}
 
 			p, err := parser.NewParser(id)
 			if err != nil {
-				fatal(logger, "failed to initialize parser", err)
+				fatal(logger, fmt.Errorf("failed to initialize a parser: %w", err))
 			}
 
 			v, err := validation.NewDelegate()
 			if err != nil {
-				fatal(logger, "failed to initialize validator", err)
+				fatal(logger, fmt.Errorf("failed to initialize a validator: %w", err))
 			}
 
 			// initialize scraper
 			scr, err := scraper.NewScraper(f, p, v)
 			if err != nil {
-				fatal(logger, "failed to initialize scraper", err)
+				fatal(logger, fmt.Errorf("failed to initialize a scraper: %w", err))
 			}
 
-			s := songmiddleware.Compose(
-				songmiddleware.LoggingMiddleware(
+			s := song.Compose(
+				songsvcmiddleware.LoggingMiddleware(
 					log.With(
 						logger,
 						"component", "scraper", "scraper_id", id,
@@ -114,28 +112,28 @@ func main() {
 
 		// initialize aggregator
 		var err error
-		songService, err = aggregator.NewAggregator(ss...)
+		songSvc, err = aggregator.NewAggregator(ss...)
 		if err != nil {
-			fatal(logger, "failed to initialize aggregator", err)
+			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
 		}
 
-		songService = songmiddleware.Compose(
-			songmiddleware.LoggingMiddleware(
+		songSvc = song.Compose(
+			songsvcmiddleware.LoggingMiddleware(
 				log.With(
 					logger,
 					"component", "aggregator",
 				),
 			),
-		)(songService)
+		)(songSvc)
 	}
 
 	// initialize songs endpoints
-	var songEndpoints *songendpoint.Endpoints
+	var songEndpoints songendpoint.Endpoints
 	{
-		var err error
-		songEndpoints, err = songendpoint.NewEndpoints(songService)
-		if err != nil {
-			fatal(logger, "failed to initialize endpoints", err)
+		songEndpoints = songendpoint.Endpoints{
+			GetSong:     songendpoint.MakeGetSongEndpoint(songSvc),
+			GetSongs:    songendpoint.MakeGetSongsEndpoint(songSvc),
+			GetPreviews: songendpoint.MakeGetPreviewsEndpoint(songSvc),
 		}
 	}
 
@@ -150,19 +148,21 @@ func main() {
 	}
 
 	// initialize docs service
-	var docsService docs.Service
+	var docsSvc docs.Service
 	{
 		var err error
-		docsService, err = provider.NewProvider("./api/openapi-spec/openapi.json")
+		docsSvc, err = service.NewProvider("./api/openapi-spec/openapi.json")
 		if err != nil {
-			fatal(logger, "failed to initialize docs service", err)
+			fatal(logger, fmt.Errorf("failed to initialize docs provider: %w", err))
 		}
 	}
 
 	// initialize docs endpoints
-	var docsEndpoints *docsendpoint.Endpoints
+	var docsEndpoints docsendpoint.Endpoints
 	{
-		docsEndpoints = docsendpoint.NewEndpoints(docsService)
+		docsEndpoints = docsendpoint.Endpoints{
+			GetSpec: docsendpoint.MakeGetSpecEndpoint(docsSvc),
+		}
 	}
 
 	// initialize docs http handler
@@ -176,36 +176,31 @@ func main() {
 	}
 
 	// initialize router
-	var router *mux.Router
+	var httpHandler http.Handler
 	{
-		router = mux.NewRouter().StrictSlash(true)
+		router := mux.NewRouter().StrictSlash(true)
 
-		// register song http handler
 		router.PathPrefix("/api/songs").Handler(songHTTPHandler)
-
-		// register docs handler
 		router.PathPrefix("/").Handler(docsHTTPHandler)
+
+		httpHandler = router
 	}
 
-	errs := make(chan error)
-	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		errs <- fmt.Errorf("%s", <-c)
-	}()
+	errc := make(chan error, 1)
 
 	go func() {
-		addr, err := net.ResolveTCPAddr(
-			"",
-			fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port),
-		)
-		if err != nil {
-			fatal(logger, "failed to resolve addr", err)
+		addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+		if err := http.ListenAndServe(addr, httpHandler); err != nil {
+			errc <- err
 		}
-		_ = logger.Log("transport", "http", "addr", addr.String())
-
-		errs <- http.ListenAndServe(addr.String(), router)
 	}()
 
-	_ = logger.Log("exit", <-errs)
+	go func() {
+		sigc := make(chan os.Signal, 1)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+		errc <- fmt.Errorf("%s", <-sigc)
+	}()
+
+	_ = logger.Log("msg", "application started")
+	_ = logger.Log("msg", "application stopped", "exit", <-errc)
 }

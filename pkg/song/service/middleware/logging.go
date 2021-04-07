@@ -6,11 +6,12 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
+	domain "github.com/linden-honey/linden-honey-go/pkg/song"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
 // LoggingMiddleware returns logging middleware for scraper service
-func LoggingMiddleware(logger log.Logger) Middleware {
+func LoggingMiddleware(logger log.Logger) song.Middleware {
 	return func(next song.Service) song.Service {
 		return loggingMiddleware{
 			logger: logger,
@@ -25,7 +26,7 @@ type loggingMiddleware struct {
 }
 
 // GetSong proxies call to service with logging
-func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Song, err error) {
+func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *domain.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "getting еру song",
 		"song_id", id,
@@ -49,7 +50,7 @@ func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Son
 }
 
 // GetSongs proxies call to service with logging
-func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err error) {
+func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []domain.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "getting songs",
 	)
@@ -57,7 +58,7 @@ func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err e
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "successfully got songs",
-				"res_count", len(ss),
+				"count", len(ss),
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(
@@ -70,7 +71,7 @@ func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err e
 }
 
 // GetPreviews proxies call to service with logging
-func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Preview, err error) {
+func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []domain.Preview, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "getting previews",
 	)
@@ -78,7 +79,7 @@ func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Preview,
 		if err == nil {
 			_ = level.Debug(mw.logger).Log(
 				"msg", "successfully got previews",
-				"res_count", len(pp),
+				"count", len(pp),
 			)
 		} else {
 			_ = level.Debug(mw.logger).Log(

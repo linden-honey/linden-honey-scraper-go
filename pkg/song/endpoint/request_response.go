@@ -1,7 +1,7 @@
 package endpoint
 
 import (
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-go/pkg/song"
 )
 
 //GetSongRequest represents a request object

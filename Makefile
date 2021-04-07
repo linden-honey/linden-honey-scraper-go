@@ -1,44 +1,70 @@
-GO						:= go
+MODE						?= local
 
-PACKAGES				:= ./...
-GO_COVER_PROFILE		:= coverage.out
-GOLANGCI_LINT_VERSION	:= v1.29.0
+GO							?= @go
+GO_VERSION					?= 1.16
+
+GOLANGCI_LINT				?= @golangci-lint
+GOLANGCI_LINT_VERSION		?= 1.39.0
+
+PACKAGES					?= ./...
+GO_COVER_PROFILE			?= coverage.out
+
+DOCKER_IMAGE_REGISTRY		?= docker.io/library
+DOCKER_IMAGE_REPOSITORY		?= lindenhoney/linden-honey-scraper-go
+DOCKER_IMAGE_TAG			?= latest
+DOCKER_IMAGE				?= $(DOCKER_IMAGE_REGISTRY)/$(DOCKER_IMAGE_REPOSITORY):$(DOCKER_IMAGE_TAG)
+
+ifeq ($(MODE),docker)
+	GO_DOCKER_IMAGE 				:= library/golang:$(GO_VERSION)
+	GO 								:= @docker run --rm -v $(CURDIR):/app -v $(GOPATH)/pkg/mod:/go/pkg/mod -w /app $(GO_DOCKER_IMAGE) go
+
+	GOLANGCI_LINT_DOCKER_IMAGE		:= golangci/golangci-lint:v${GOLANGCI_LINT_VERSION}
+	GOLANGCI_LINT					:= @docker run --rm -v $(CURDIR):/app -w /app $(GOLANGCI_LINT_DOCKER_IMAGE) golangci-lint run -v
+endif
 
 .PHONY: all
 all: build test
 
 .PNONY: fmt
 fmt:
-	${GO} fmt $(PACKAGES)
+	$(GO) fmt $(PACKAGES)
 
-.PHONY: deps
-deps:
-	${GO} mod tidy -v
+.PHONY: mod/download
+mod/download:
+	$(GO) mod download
+
+.PHONY: mod/tidy
+mod/tidy:
+	$(GO) mod tidy -v
 
 .PHONY: prepare
-prepare: deps fmt
-
-.PHONY: run
-run: prepare
-	${GO} run -v ./cmd/server/main.go
+prepare: mod/download fmt
 
 .PHONY: build
 build: prepare
-	${GO} build -v $(PACKAGES)
+	$(GO) build -v $(PACKAGES)
 
 .PHONY: install
 install: prepare
-	${GO} install -v $(PACKAGES)
+	$(GO) install -v $(PACKAGES)
 
 .PHONY: test
 test: prepare
-	${GO} test -v -race -coverprofile=$(GO_COVER_PROFILE) $(PACKAGES)
+	$(GO) test -v -race -coverprofile=$(GO_COVER_PROFILE) $(PACKAGES)
 
 .PHONY: coverage
 coverage: test
-	${GO} tool cover -func=$(GO_COVER_PROFILE) -o coverage.txt
-	${GO} tool cover -html=$(GO_COVER_PROFILE) -o coverage.html
+	$(GO) tool cover -func=$(GO_COVER_PROFILE) -o coverage.txt
+	$(GO) tool cover -html=$(GO_COVER_PROFILE) -o coverage.html
 
 .PHONY: lint
 lint: prepare
-	docker run --rm -v $(CURDIR):/app -w /app golangci/golangci-lint:${GOLANGCI_LINT_VERSION} golangci-lint run -v
+	$(GOLANGCI_LINT) run -v
+
+.PHONY: docker/build
+docker/build:
+	@docker build -t $(DOCKER_IMAGE) .
+
+.PHONY: docker/push
+docker/push:
+	@docker push $(DOCKER_IMAGE)

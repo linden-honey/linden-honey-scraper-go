@@ -22,22 +22,22 @@ func NewHTTPHandler(prefix string, endpoints endpoint.Endpoints, logger log.Logg
 	}
 
 	// initialize router
-	r := mux.
+	router := mux.
 		NewRouter().
 		StrictSlash(true)
 
 	// declare routes
-	r.
+	router.
 		Path(path.Clean(prefix)).
 		Methods("GET").
-		Queries("projection", "preview").
+		Queries("view", "preview").
 		Handler(httptransport.NewServer(
 			endpoints.GetPreviews,
 			decodeGetPreviewsRequest,
 			encodeGetPreviewsResponse,
 			opts...,
 		))
-	r.
+	router.
 		Path(path.Clean(prefix)).
 		Methods("GET").
 		Handler(httptransport.NewServer(
@@ -46,7 +46,7 @@ func NewHTTPHandler(prefix string, endpoints endpoint.Endpoints, logger log.Logg
 			encodeGetSongsResponse,
 			opts...,
 		))
-	r.
+	router.
 		Path(path.Join(prefix, "{id}")).
 		Methods("GET").
 		Handler(httptransport.NewServer(
@@ -56,7 +56,7 @@ func NewHTTPHandler(prefix string, endpoints endpoint.Endpoints, logger log.Logg
 			opts...,
 		))
 
-	return r
+	return router
 }
 
 func decodeGetSongRequest(_ context.Context, r *http.Request) (interface{}, error) {

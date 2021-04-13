@@ -8,7 +8,7 @@
         "/api/songs/{id}": {
             "get": {
                 "tags": [
-                    "song-controller"
+                    "songs"
                 ],
                 "operationId": "getSong",
                 "parameters": [
@@ -38,12 +38,12 @@
         "/api/songs": {
             "get": {
                 "tags": [
-                    "song-controller"
+                    "songs"
                 ],
                 "operationId": "getSongs",
                 "parameters": [
                     {
-                        "name": "projection",
+                        "name": "view",
                         "in": "query",
                         "required": false,
                         "schema": {

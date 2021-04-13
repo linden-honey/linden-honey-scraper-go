@@ -16,7 +16,7 @@ type Endpoints struct {
 }
 
 func MakeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetSongRequest)
 
 		s, err := svc.GetSong(ctx, req.ID)
@@ -31,7 +31,7 @@ func MakeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
 }
 
 func MakeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		_ = request.(GetSongsRequest)
 
 		ss, err := svc.GetSongs(ctx)
@@ -46,7 +46,7 @@ func MakeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
 }
 
 func MakeGetPreviewsEndpoint(svc song.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		_ = request.(GetPreviewsRequest)
 
 		pp, err := svc.GetPreviews(ctx)

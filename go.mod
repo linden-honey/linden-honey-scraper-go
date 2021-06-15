@@ -12,7 +12,6 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/linden-honey/linden-honey-go v0.0.1
 	github.com/linden-honey/linden-honey-sdk-go v0.0.5
-	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/http-swagger v0.0.0-20200103000832-0e9263c4b516
 	golang.org/x/text v0.3.2

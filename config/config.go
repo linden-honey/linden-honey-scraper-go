@@ -3,11 +3,9 @@ package config
 import (
 	"fmt"
 
-	"github.com/spf13/cast"
-
 	"github.com/linden-honey/linden-honey-sdk-go/env"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 )
 
 // Config represents the root configuration
@@ -23,8 +21,7 @@ type ApplicationConfig struct {
 
 // ServerConfig represents the server configuration
 type ServerConfig struct {
-	Host string
-	Port int
+	Addr string
 }
 
 // ScraperConfig represents the scraper configuration
@@ -51,8 +48,7 @@ func NewConfig() (cfg *Config, err error) {
 			},
 		},
 		Server: ServerConfig{
-			Host: env.GetEnv("SERVER_HOST", "0.0.0.0"),
-			Port: cast.ToInt(env.GetEnv("SERVER_PORT", "8080")),
+			Addr: env.GetEnv("SERVER_ADDR", "localhost:8080"),
 		},
 	}
 

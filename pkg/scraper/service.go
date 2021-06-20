@@ -1,4 +1,4 @@
-package song
+package scraper
 
 import (
 	"context"

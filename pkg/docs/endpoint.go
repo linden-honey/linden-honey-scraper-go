@@ -1,12 +1,10 @@
-package endpoint
+package docs
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/go-kit/kit/endpoint"
-
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 )
 
 // Endpoints represents endpoints definition
@@ -14,7 +12,7 @@ type Endpoints struct {
 	GetSpec endpoint.Endpoint
 }
 
-func MakeGetSpecEndpoint(svc docs.Service) endpoint.Endpoint {
+func MakeGetSpecEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		_ = request.(GetSpecRequest)
 		spec, err := svc.GetSpec(ctx)

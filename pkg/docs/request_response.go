@@ -1,8 +1,4 @@
-package endpoint
-
-import (
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
-)
+package docs
 
 //GetSpecRequest represents a request object
 type GetSpecRequest struct {
@@ -10,5 +6,5 @@ type GetSpecRequest struct {
 
 //GetSpecResponse represents a response object
 type GetSpecResponse struct {
-	Spec *docs.Spec
+	Spec *Spec
 }

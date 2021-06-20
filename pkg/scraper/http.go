@@ -1,4 +1,4 @@
-package http
+package scraper
 
 import (
 	"context"
@@ -11,12 +11,10 @@ import (
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
 )
 
 // NewHTTPHandler returns the new instance of http.Handler
-func NewHTTPHandler(prefix string, endpoints endpoint.Endpoints, logger log.Logger) http.Handler {
+func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.Handler {
 	opts := []httptransport.ServerOption{
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
 	}
@@ -65,13 +63,13 @@ func decodeGetSongRequest(_ context.Context, r *http.Request) (interface{}, erro
 	if !ok {
 		return nil, errors.New("missed song id")
 	}
-	return endpoint.GetSongRequest{
+	return GetSongRequest{
 		ID: id,
 	}, nil
 }
 
 func encodeGetSongResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	res := response.(endpoint.GetSongResponse)
+	res := response.(GetSongResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Result); err != nil {
 		return fmt.Errorf("failed to encode get song response: %w", err)
@@ -80,11 +78,11 @@ func encodeGetSongResponse(ctx context.Context, w http.ResponseWriter, response 
 }
 
 func decodeGetSongsRequest(_ context.Context, _ *http.Request) (interface{}, error) {
-	return endpoint.GetSongsRequest{}, nil
+	return GetSongsRequest{}, nil
 }
 
 func encodeGetSongsResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	res := response.(endpoint.GetSongsResponse)
+	res := response.(GetSongsResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {
 		return fmt.Errorf("failed to encode get songs response: %w", err)
@@ -94,11 +92,11 @@ func encodeGetSongsResponse(ctx context.Context, w http.ResponseWriter, response
 }
 
 func decodeGetPreviewsRequest(_ context.Context, _ *http.Request) (interface{}, error) {
-	return endpoint.GetPreviewsRequest{}, nil
+	return GetPreviewsRequest{}, nil
 }
 
 func encodeGetPreviewsResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	res := response.(endpoint.GetPreviewsResponse)
+	res := response.(GetPreviewsResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {
 		return fmt.Errorf("failed to encode get previews response: %w", err)

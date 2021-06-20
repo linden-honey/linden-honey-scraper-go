@@ -10,13 +10,15 @@ import (
 	"github.com/linden-honey/linden-honey-go/pkg/song"
 )
 
+const GrobParserID = "grob"
+
 // GrobParser represents the parser implementation for gr-oborona.ru
 type GrobParser struct {
 }
 
 // NewGrobParser returns a pointer to the new instance of GrobParser or an error
-func NewGrobParser() (*GrobParser, error) {
-	return &GrobParser{}, nil
+func NewGrobParser() *GrobParser {
+	return &GrobParser{}
 }
 
 // parseHTML parse html and returns a pointer to the Document instance

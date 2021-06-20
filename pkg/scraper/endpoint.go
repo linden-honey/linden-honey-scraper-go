@@ -1,11 +1,9 @@
-package endpoint
+package scraper
 
 import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
 // Endpoints represents endpoints definition
@@ -15,7 +13,7 @@ type Endpoints struct {
 	GetPreviews endpoint.Endpoint
 }
 
-func MakeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
+func MakeGetSongEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetSongRequest)
 
@@ -30,7 +28,7 @@ func MakeGetSongEndpoint(svc song.Service) endpoint.Endpoint {
 	}
 }
 
-func MakeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
+func MakeGetSongsEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		_ = request.(GetSongsRequest)
 
@@ -45,7 +43,7 @@ func MakeGetSongsEndpoint(svc song.Service) endpoint.Endpoint {
 	}
 }
 
-func MakeGetPreviewsEndpoint(svc song.Service) endpoint.Endpoint {
+func MakeGetPreviewsEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		_ = request.(GetPreviewsRequest)
 

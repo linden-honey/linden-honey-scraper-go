@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
+	"github.com/gojek/heimdall/v7"
+	"github.com/gojek/heimdall/v7/httpclient"
 	"golang.org/x/text/encoding/charmap"
-
-	"github.com/gojektech/heimdall"
-	"github.com/gojektech/heimdall/httpclient"
 
 	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
@@ -57,6 +57,35 @@ func NewFetcher(cfg Config, opts ...Option) (*Fetcher, error) {
 	}
 
 	return f, nil
+}
+
+type Option func(*Fetcher)
+
+// RetryConfig represents the retry configuration
+type RetryConfig struct {
+	Retries           int
+	Factor            float64
+	MinTimeout        time.Duration
+	MaxTimeout        time.Duration
+	MaxJitterInterval time.Duration
+}
+
+func WithRetry(cfg RetryConfig) Option {
+	return func(f *Fetcher) {
+		f.client = httpclient.NewClient(
+			httpclient.WithRetryCount(cfg.Retries),
+			httpclient.WithRetrier(
+				heimdall.NewRetrier(
+					heimdall.NewExponentialBackoff(
+						cfg.MinTimeout,
+						cfg.MaxTimeout,
+						cfg.Factor,
+						cfg.MaxJitterInterval,
+					),
+				),
+			),
+		)
+	}
 }
 
 // Fetch send GET request under relative path built with pathFormat and args and returns content string

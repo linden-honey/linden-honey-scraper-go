@@ -19,23 +19,10 @@ import (
 
 	"github.com/linden-honey/linden-honey-scraper-go/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
-	docsendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/endpoint"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs/service"
-	docshttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/docs/transport/http"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
-	songendpoint "github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/aggregator"
-	songsvcmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/middleware"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/fetcher"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/service/scraper/parser"
-	songhttptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/song/transport/http"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/fetcher"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 )
-
-func fatal(logger log.Logger, err error) {
-	_ = logger.Log("err: %w", err)
-	os.Exit(1)
-}
 
 func main() {
 	// initialize logger
@@ -56,9 +43,9 @@ func main() {
 	}
 
 	// initialize song service
-	var songSvc song.Service
+	var songSvc scraper.Service
 	{
-		ss := make([]song.Service, 0)
+		ss := make([]scraper.Service, 0)
 		for id, scrCfg := range cfg.Application.Scrapers {
 			u, err := url.Parse(scrCfg.BaseURL)
 			if err != nil {
@@ -98,12 +85,10 @@ func main() {
 				fatal(logger, fmt.Errorf("failed to initialize a scraper: %w", err))
 			}
 
-			s := song.Compose(
-				songsvcmiddleware.LoggingMiddleware(
-					log.With(
-						logger,
-						"component", "scraper", "scraper_id", id,
-					),
+			s := scraper.LoggingMiddleware(
+				log.With(
+					logger,
+					"component", "scraper", "scraper_id", id,
 				),
 			)(scr)
 
@@ -112,35 +97,33 @@ func main() {
 
 		// initialize aggregator
 		var err error
-		songSvc, err = aggregator.NewAggregator(ss...)
+		songSvc, err = scraper.NewAggregator(ss...)
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
 		}
 
-		songSvc = song.Compose(
-			songsvcmiddleware.LoggingMiddleware(
-				log.With(
-					logger,
-					"component", "aggregator",
-				),
+		songSvc = scraper.LoggingMiddleware(
+			log.With(
+				logger,
+				"component", "aggregator",
 			),
 		)(songSvc)
 	}
 
 	// initialize songs endpoints
-	var songEndpoints songendpoint.Endpoints
+	var songEndpoints scraper.Endpoints
 	{
-		songEndpoints = songendpoint.Endpoints{
-			GetSong:     songendpoint.MakeGetSongEndpoint(songSvc),
-			GetSongs:    songendpoint.MakeGetSongsEndpoint(songSvc),
-			GetPreviews: songendpoint.MakeGetPreviewsEndpoint(songSvc),
+		songEndpoints = scraper.Endpoints{
+			GetSong:     scraper.MakeGetSongEndpoint(songSvc),
+			GetSongs:    scraper.MakeGetSongsEndpoint(songSvc),
+			GetPreviews: scraper.MakeGetPreviewsEndpoint(songSvc),
 		}
 	}
 
 	// initialize song http handler
 	var songHTTPHandler http.Handler
 	{
-		songHTTPHandler = songhttptransport.NewHTTPHandler(
+		songHTTPHandler = scraper.NewHTTPHandler(
 			"/api/songs",
 			songEndpoints,
 			logger,
@@ -151,24 +134,24 @@ func main() {
 	var docsSvc docs.Service
 	{
 		var err error
-		docsSvc, err = service.NewProvider("./api/openapi-spec/openapi.json")
+		docsSvc, err = docs.NewProvider("./api/openapi-spec/openapi.json")
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize docs provider: %w", err))
 		}
 	}
 
 	// initialize docs endpoints
-	var docsEndpoints docsendpoint.Endpoints
+	var docsEndpoints docs.Endpoints
 	{
-		docsEndpoints = docsendpoint.Endpoints{
-			GetSpec: docsendpoint.MakeGetSpecEndpoint(docsSvc),
+		docsEndpoints = docs.Endpoints{
+			GetSpec: docs.MakeGetSpecEndpoint(docsSvc),
 		}
 	}
 
 	// initialize docs http handler
 	var docsHTTPHandler http.Handler
 	{
-		docsHTTPHandler = docshttptransport.NewHTTPHandler(
+		docsHTTPHandler = docs.NewHTTPHandler(
 			"/",
 			docsEndpoints,
 			log.With(logger, "component", "http"),
@@ -189,8 +172,7 @@ func main() {
 	errc := make(chan error, 1)
 
 	go func() {
-		addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-		if err := http.ListenAndServe(addr, httpHandler); err != nil {
+		if err := http.ListenAndServe(cfg.Server.Addr, httpHandler); err != nil {
 			errc <- err
 		}
 	}()
@@ -203,4 +185,9 @@ func main() {
 
 	_ = logger.Log("msg", "application started")
 	_ = logger.Log("msg", "application stopped", "exit", <-errc)
+}
+
+func fatal(logger log.Logger, err error) {
+	_ = logger.Log("err: %w", err)
+	os.Exit(1)
 }

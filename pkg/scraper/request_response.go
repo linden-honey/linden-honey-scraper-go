@@ -1,4 +1,4 @@
-package endpoint
+package scraper
 
 import (
 	"github.com/linden-honey/linden-honey-go/pkg/song"

@@ -1,4 +1,4 @@
-package middleware
+package scraper
 
 import (
 	"context"
@@ -7,12 +7,11 @@ import (
 	"github.com/go-kit/kit/log/level"
 
 	domain "github.com/linden-honey/linden-honey-go/pkg/song"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
 )
 
 // LoggingMiddleware returns logging middleware for scraper service
-func LoggingMiddleware(logger log.Logger) song.Middleware {
-	return func(next song.Service) song.Service {
+func LoggingMiddleware(logger log.Logger) Middleware {
+	return func(next Service) Service {
 		return loggingMiddleware{
 			logger: logger,
 			next:   next,
@@ -22,13 +21,13 @@ func LoggingMiddleware(logger log.Logger) song.Middleware {
 
 type loggingMiddleware struct {
 	logger log.Logger
-	next   song.Service
+	next   Service
 }
 
 // GetSong proxies call to service with logging
 func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *domain.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
-		"msg", "getting еру song",
+		"msg", "getting a song",
 		"song_id", id,
 	)
 	defer func() {

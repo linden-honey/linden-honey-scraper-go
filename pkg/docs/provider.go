@@ -1,16 +1,14 @@
-package service
+package docs
 
 import (
 	"context"
 	"fmt"
 	"io/ioutil"
-
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 )
 
 // Provider represents spec provider
 type Provider struct {
-	spec     *docs.Spec
+	spec     *Spec
 	specPath string
 }
 
@@ -22,14 +20,14 @@ func NewProvider(specPath string) (*Provider, error) {
 }
 
 // GetSpec returns specification from fs or cache or an error
-func (sp *Provider) GetSpec(_ context.Context) (*docs.Spec, error) {
+func (sp *Provider) GetSpec(_ context.Context) (*Spec, error) {
 	if sp.spec == nil {
 		specBytes, err := ioutil.ReadFile(sp.specPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read a spec file: %w", err)
 		}
 
-		spec := docs.Spec(specBytes)
+		spec := Spec(specBytes)
 		sp.spec = &spec
 	}
 	return sp.spec, nil

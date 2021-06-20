@@ -1,26 +1,42 @@
-package aggregator
+package scraper
 
 import (
 	"context"
+	"fmt"
 
-	domain "github.com/linden-honey/linden-honey-go/pkg/song"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/song"
+	"github.com/linden-honey/linden-honey-go/pkg/song"
 )
 
 // Aggregator represents the aggregation service implementation
 type Aggregator struct {
-	services []song.Service
+	services []Service
 }
 
 // NewAggregator returns a pointer to the new instance of Aggregator or an error
-func NewAggregator(services ...song.Service) (*Aggregator, error) {
+func NewAggregator(services ...Service) (*Aggregator, error) {
 	return &Aggregator{
 		services: services,
 	}, nil
 }
 
+type aggregationErr struct {
+	msg     string
+	reasons []error
+}
+
+func newAggregationErr(msg string, reasons ...error) *aggregationErr {
+	return &aggregationErr{
+		msg:     msg,
+		reasons: reasons,
+	}
+}
+
+func (err *aggregationErr) Error() string {
+	return fmt.Sprintf("%s: %s", err.msg, err.reasons)
+}
+
 // GetSong returns a pointer to the song or an error from aggregated services
-func (a Aggregator) GetSong(ctx context.Context, id string) (*domain.Song, error) {
+func (a Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) {
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		s, err := svc.GetSong(ctx, id)
@@ -36,8 +52,8 @@ func (a Aggregator) GetSong(ctx context.Context, id string) (*domain.Song, error
 }
 
 // GetSongs returns songs or an error from aggregated services
-func (a Aggregator) GetSongs(ctx context.Context) ([]domain.Song, error) {
-	out := make([]domain.Song, 0)
+func (a Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
+	out := make([]song.Song, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		ss, err := svc.GetSongs(ctx)
@@ -57,8 +73,8 @@ func (a Aggregator) GetSongs(ctx context.Context) ([]domain.Song, error) {
 }
 
 // GetPreviews returns previews or an error from aggregated services
-func (a Aggregator) GetPreviews(ctx context.Context) ([]domain.Preview, error) {
-	out := make([]domain.Preview, 0)
+func (a Aggregator) GetPreviews(ctx context.Context) ([]song.Preview, error) {
+	out := make([]song.Preview, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		previews, err := svc.GetPreviews(ctx)

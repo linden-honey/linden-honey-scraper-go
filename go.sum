@@ -301,6 +301,8 @@ github.com/lightstep/lightstep-tracer-go v0.22.0 h1:Yy1G8UDT1Ayx010fji4IaTIsmiji
 github.com/lightstep/lightstep-tracer-go v0.22.0/go.mod h1:RnONwHKg89zYPmF+Uig5PpHMUcYCFgml8+r4SS53y7A=
 github.com/linden-honey/linden-honey-go v0.0.1 h1:oYm+1SOUjPN0o7C1DOoSTaRcsLhaifngRrCEduLCYYA=
 github.com/linden-honey/linden-honey-go v0.0.1/go.mod h1:vbixDi3cQKlgpaz7N2GeA+toMn0JkKrQJE/qkfyWdjk=
+github.com/linden-honey/linden-honey-go v0.0.2 h1:NDkRJGGBqinmw/eR2TygTyK/d1mgmmCE4Twxa4Ktttc=
+github.com/linden-honey/linden-honey-go v0.0.2/go.mod h1:vbixDi3cQKlgpaz7N2GeA+toMn0JkKrQJE/qkfyWdjk=
 github.com/linden-honey/linden-honey-sdk-go v0.0.5 h1:rHuH27vvVqz7w9+6hvQyY6CC17QDtcbDb5zDzd1pEh8=
 github.com/linden-honey/linden-honey-sdk-go v0.0.5/go.mod h1:st+dkmLeVi2dWO2587o3p8YRaALg9jSeKT2j0+G9CXA=
 github.com/lyft/protoc-gen-validate v0.0.13 h1:KNt/RhmQTOLr7Aj8PsJ7mTronaFyx80mRTT9qF261dA=

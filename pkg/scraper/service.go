@@ -10,5 +10,5 @@ import (
 type Service interface {
 	GetSong(ctx context.Context, id string) (*song.Song, error)
 	GetSongs(ctx context.Context) ([]song.Song, error)
-	GetPreviews(ctx context.Context) ([]song.Preview, error)
+	GetPreviews(ctx context.Context) ([]song.Meta, error)
 }

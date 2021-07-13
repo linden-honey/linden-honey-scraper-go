@@ -17,7 +17,7 @@ type Fetcher interface {
 // Parser represents the parser interface
 type Parser interface {
 	ParseSong(in string) (*song.Song, error)
-	ParsePreviews(in string) ([]song.Preview, error)
+	ParsePreviews(in string) ([]song.Meta, error)
 }
 
 // Validator represents the validator interface
@@ -107,7 +107,7 @@ loop:
 }
 
 // GetPreviews scrapes previews from some source and returns them or an error
-func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Preview, error) {
+func (scr *Scraper) GetPreviews(_ context.Context) ([]song.Meta, error) {
 	data, err := scr.fetcher.Fetch("texts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)

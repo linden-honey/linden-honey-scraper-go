@@ -63,8 +63,8 @@ func (p *GrobParser) ParseVerse(in string) (*song.Verse, error) {
 	}, nil
 }
 
-// ParseVerse parses html and returns a slice of pointers of the Verse instances
-func (p *GrobParser) parseLyrics(in string) ([]song.Verse, error) {
+// parseVerses parses html and returns a slice of pointers of the Verse instances
+func (p *GrobParser) parseVerses(in string) ([]song.Verse, error) {
 	verses := make([]song.Verse, 0)
 	// hint: match nbsp; character (\xA0) that not included in \s group
 	re := regexp.MustCompile(`(?:<br/>[\s\xA0]*){2,}`)
@@ -87,35 +87,39 @@ func (p *GrobParser) ParseSong(in string) (*song.Song, error) {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
 
+	id := document.Url.Query().Get("id")
 	title := document.Find("h2").Text()
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
 	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
-	lyricsHTML, err := document.Find("p:last-of-type").Html()
+	versesHTML, err := document.Find("p:last-of-type").Html()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get lyrics html: %w", err)
 	}
 
-	verses, err := p.parseLyrics(lyricsHTML)
+	verses, err := p.parseVerses(versesHTML)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse lyrics: %w", err)
 	}
 
 	return &song.Song{
-		Title:  title,
-		Author: author,
-		Album:  album,
+		Meta: song.Meta{
+			ID:     id,
+			Title:  title,
+			Author: author,
+			Album:  album,
+		},
 		Verses: verses,
 	}, nil
 }
 
 // ParsePreviews parses html and returns a slice of pointers of the Preview instances
-func (p *GrobParser) ParsePreviews(in string) ([]song.Preview, error) {
+func (p *GrobParser) ParsePreviews(in string) ([]song.Meta, error) {
 	document, err := p.parseHTML(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
 
-	previews := make([]song.Preview, 0)
+	previews := make([]song.Meta, 0)
 	document.Find("#abc_list a").Each(func(_ int, link *goquery.Selection) {
 		path, pathExists := link.Attr("href")
 		if pathExists {
@@ -124,7 +128,7 @@ func (p *GrobParser) ParsePreviews(in string) ([]song.Preview, error) {
 			if startIndex != -1 && endIndex != -1 {
 				id := path[startIndex+1 : endIndex]
 				title := link.Text()
-				previews = append(previews, song.Preview{
+				previews = append(previews, song.Meta{
 					ID:    id,
 					Title: title,
 				})

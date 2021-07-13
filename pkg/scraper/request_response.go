@@ -29,5 +29,5 @@ type GetPreviewsRequest struct {
 
 //GetPreviewsResponse represents a response object
 type GetPreviewsResponse struct {
-	Results []song.Preview
+	Results []song.Meta
 }

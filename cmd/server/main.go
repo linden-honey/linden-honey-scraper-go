@@ -134,7 +134,7 @@ func main() {
 	var docsSvc docs.Service
 	{
 		var err error
-		docsSvc, err = docs.NewProvider("./api/openapi-spec/openapi.json")
+		docsSvc, err = docs.NewProvider("./api/openapi.json")
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize docs provider: %w", err))
 		}

@@ -11,7 +11,7 @@ import (
 
 // Fetcher represents the content fetcher interface
 type Fetcher interface {
-	Fetch(pathFormat string, args ...interface{}) (string, error)
+	Fetch(path string) (string, error)
 }
 
 // Parser represents the parser interface
@@ -47,7 +47,7 @@ func NewScraper(
 
 // GetSong scrapes a song from some source and returns it or an error
 func (scr *Scraper) GetSong(_ context.Context, id string) (*song.Song, error) {
-	data, err := scr.fetcher.Fetch("text_print.php?area=go_texts&id=%s", id)
+	data, err := scr.fetcher.Fetch(fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}

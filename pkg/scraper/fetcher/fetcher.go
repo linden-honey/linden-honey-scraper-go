@@ -88,9 +88,9 @@ func WithRetry(cfg RetryConfig) Option {
 	}
 }
 
-// Fetch send GET request under relative path built with pathFormat and args and returns content string
-func (f *Fetcher) Fetch(pathFormat string, args ...interface{}) (string, error) {
-	fetchURL, err := f.baseURL.Parse(fmt.Sprintf(pathFormat, args...))
+// Fetch send GET request under relative path and returns content as a string
+func (f *Fetcher) Fetch(path string) (string, error) {
+	fetchURL, err := f.baseURL.Parse(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse an URL: %w", err)
 	}

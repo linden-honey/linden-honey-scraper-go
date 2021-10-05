@@ -12,7 +12,7 @@ import (
 // LoggingMiddleware returns logging middleware for scraper service
 func LoggingMiddleware(logger log.Logger) Middleware {
 	return func(next Service) Service {
-		return loggingMiddleware{
+		return &loggingMiddleware{
 			logger: logger,
 			next:   next,
 		}
@@ -25,7 +25,7 @@ type loggingMiddleware struct {
 }
 
 // GetSong proxies call to service with logging
-func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Song, err error) {
+func (mw *loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "getting a song",
 		"song_id", id,
@@ -49,7 +49,7 @@ func (mw loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Son
 }
 
 // GetSongs proxies call to service with logging
-func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err error) {
+func (mw *loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "getting songs",
 	)
@@ -70,7 +70,7 @@ func (mw loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err e
 }
 
 // GetPreviews proxies call to service with logging
-func (mw loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Meta, err error) {
+func (mw *loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Meta, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "getting previews",
 	)

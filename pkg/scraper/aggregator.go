@@ -56,13 +56,13 @@ func (a Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 	out := make([]song.Song, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
-		ss, err := svc.GetSongs(ctx)
+		songs, err := svc.GetSongs(ctx)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
-		out = append(out, ss...)
+		out = append(out, songs...)
 	}
 
 	if len(errs) != 0 {

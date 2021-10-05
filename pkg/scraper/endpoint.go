@@ -32,13 +32,13 @@ func MakeGetSongsEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		_ = request.(GetSongsRequest)
 
-		ss, err := svc.GetSongs(ctx)
+		songs, err := svc.GetSongs(ctx)
 		if err != nil {
 			return nil, err
 		}
 
 		return GetSongsResponse{
-			Results: ss,
+			Results: songs,
 		}, nil
 	}
 }
@@ -47,13 +47,13 @@ func MakeGetPreviewsEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		_ = request.(GetPreviewsRequest)
 
-		pp, err := svc.GetPreviews(ctx)
+		previews, err := svc.GetPreviews(ctx)
 		if err != nil {
 			return nil, err
 		}
 
 		return GetPreviewsResponse{
-			Results: pp,
+			Results: previews,
 		}, nil
 	}
 }

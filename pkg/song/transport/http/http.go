@@ -3,14 +3,14 @@ package http
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"path"
-
-	"github.com/gorilla/mux"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/song/endpoint"
 )
@@ -74,7 +74,7 @@ func encodeGetSongResponse(ctx context.Context, w http.ResponseWriter, response 
 	res := response.(endpoint.GetSongResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Result); err != nil {
-		return err
+		return fmt.Errorf("failed to encode get song response: %w", err)
 	}
 	return nil
 }
@@ -87,8 +87,9 @@ func encodeGetSongsResponse(ctx context.Context, w http.ResponseWriter, response
 	res := response.(endpoint.GetSongsResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {
-		return err
+		return fmt.Errorf("failed to encode get songs response: %w", err)
 	}
+
 	return nil
 }
 
@@ -100,7 +101,8 @@ func encodeGetPreviewsResponse(ctx context.Context, w http.ResponseWriter, respo
 	res := response.(endpoint.GetPreviewsResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {
-		return err
+		return fmt.Errorf("failed to encode get previews response: %w", err)
 	}
+
 	return nil
 }

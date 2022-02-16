@@ -1,26 +1,16 @@
-MODE						?= local
-
 GO							?= @go
-GO_VERSION					?= 1.16
-
-GOLANGCI_LINT				?= @golangci-lint
-GOLANGCI_LINT_VERSION		?= 1.39.0
 
 PACKAGES					?= ./...
-GO_COVER_PROFILE			?= coverage.out
+TEST_PACKAGES				?= $(PACKAGES)
+COVER_PACKAGES				?= $(shell echo $(TEST_PACKAGES) | tr " " ",")
+COVER_PROFILE				?= coverage.out
+
+GOLANGCI_LINT				?= @golangci-lint
 
 DOCKER_IMAGE_REGISTRY		?= docker.io/library
 DOCKER_IMAGE_REPOSITORY		?= lindenhoney/linden-honey-scraper-go
 DOCKER_IMAGE_TAG			?= latest
 DOCKER_IMAGE				?= $(DOCKER_IMAGE_REGISTRY)/$(DOCKER_IMAGE_REPOSITORY):$(DOCKER_IMAGE_TAG)
-
-ifeq ($(MODE),docker)
-	GO_DOCKER_IMAGE 				:= library/golang:$(GO_VERSION)
-	GO 								:= @docker run --rm -v $(CURDIR):/app -v $(GOPATH)/pkg/mod:/go/pkg/mod -w /app $(GO_DOCKER_IMAGE) go
-
-	GOLANGCI_LINT_DOCKER_IMAGE		:= golangci/golangci-lint:v${GOLANGCI_LINT_VERSION}
-	GOLANGCI_LINT					:= @docker run --rm -v $(CURDIR):/app -w /app $(GOLANGCI_LINT_DOCKER_IMAGE) golangci-lint run -v
-endif
 
 .PHONY: all
 all: build test
@@ -33,12 +23,12 @@ fmt:
 mod/download:
 	$(GO) mod download
 
-.PHONY: mod/tidy
-mod/tidy:
-	$(GO) mod tidy -v
-
 .PHONY: prepare
 prepare: mod/download fmt
+
+.PHONY: run
+run: prepare
+	$(GO) run -v ./cmd/server/main.go
 
 .PHONY: build
 build: prepare
@@ -50,12 +40,12 @@ install: prepare
 
 .PHONY: test
 test: prepare
-	$(GO) test -v -race -coverprofile=$(GO_COVER_PROFILE) $(PACKAGES)
+	$(GO) test -v -race -coverpkg $(COVER_PACKAGES) -coverprofile $(COVER_PROFILE) $(TEST_PACKAGES)
 
 .PHONY: coverage
 coverage: test
-	$(GO) tool cover -func=$(GO_COVER_PROFILE) -o coverage.txt
-	$(GO) tool cover -html=$(GO_COVER_PROFILE) -o coverage.html
+	$(GO) tool cover -func $(COVER_PROFILE) -o coverage.txt
+	$(GO) tool cover -html $(COVER_PROFILE) -o coverage.html
 
 .PHONY: lint
 lint: prepare

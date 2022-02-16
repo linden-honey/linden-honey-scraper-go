@@ -1,9 +1,10 @@
 package fetcher
 
 import (
+	"time"
+
 	"github.com/gojektech/heimdall"
 	"github.com/gojektech/heimdall/httpclient"
-	"time"
 )
 
 type Option func(*Fetcher)

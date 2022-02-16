@@ -12,15 +12,11 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go install -v -ldflags="-w -s" ./cmd/s
 
 FROM scratch
 
-LABEL \
-    name="linden-honey-scraper-go" \
-    maintainer="aliaksandr.babai@gmail.com"
-
-ARG WORK_DIR=/linden-honey
+ARG WORK_DIR=/app
 WORKDIR $WORK_DIR
 
 ENV SERVER_HOST=0.0.0.0 \
-    SERVER_SERVER_PORT=8080
+    SERVER_SERVER_PORT=80
 EXPOSE $SERVER_PORT
 
 COPY --from=builder /go/bin/server /bin/server

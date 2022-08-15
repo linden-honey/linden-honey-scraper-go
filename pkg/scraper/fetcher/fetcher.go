@@ -1,6 +1,7 @@
 package fetcher
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,9 +15,13 @@ import (
 	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
 
+type httpClient interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
 // Fetcher represents the default fetcher implementation
 type Fetcher struct {
-	client         heimdall.Doer
+	client         httpClient
 	baseURL        *url.URL
 	sourceEncoding *charmap.Charmap
 }
@@ -90,13 +95,13 @@ func WithRetry(cfg RetryConfig) Option {
 }
 
 // Fetch send GET request under relative path and returns content as a string
-func (f *Fetcher) Fetch(path string) (string, error) {
+func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
 	fetchURL, err := f.baseURL.Parse(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse an URL: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodGet, fetchURL.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fetchURL.String(), nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create a request: %w", err)
 	}

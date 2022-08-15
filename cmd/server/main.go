@@ -17,7 +17,7 @@ import (
 
 	"github.com/linden-honey/linden-honey-sdk-go/validation"
 
-	"github.com/linden-honey/linden-honey-scraper-go/config"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/fetcher"

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,6 +16,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 
+	"github.com/linden-honey/linden-honey-sdk-go/health"
 	"github.com/linden-honey/linden-honey-sdk-go/validation"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
@@ -25,7 +27,19 @@ import (
 )
 
 func main() {
-	// initialize logger
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+	{
+		ctx = context.Background()
+		ctx, cancel = context.WithCancel(ctx)
+		defer func() {
+			cancel()
+			time.Sleep(3 * time.Second)
+		}()
+	}
+
 	var logger log.Logger
 	{
 		logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
@@ -33,7 +47,10 @@ func main() {
 		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 	}
 
-	// initialize config
+	_ = logger.Log("msg", "initialization of the application")
+
+	_ = logger.Log("msg", "initialize configuration")
+
 	var cfg *config.Config
 	{
 		var err error
@@ -42,11 +59,12 @@ func main() {
 		}
 	}
 
-	// initialize song service
-	var songSvc scraper.Service
+	_ = logger.Log("msg", "initialize services")
+
+	var scraperSvc scraper.Service
 	{
 		ss := make([]scraper.Service, 0)
-		for id, scrCfg := range cfg.Application.Scrapers {
+		for id, scrCfg := range cfg.Scrapers {
 			u, err := url.Parse(scrCfg.BaseURL)
 			if err != nil {
 				fatal(logger, fmt.Errorf("failed to parse scraper base url: %w", err))
@@ -79,7 +97,6 @@ func main() {
 				fatal(logger, fmt.Errorf("failed to initialize a validator: %w", err))
 			}
 
-			// initialize scraper
 			scr, err := scraper.NewScraper(f, p, v)
 			if err != nil {
 				fatal(logger, fmt.Errorf("failed to initialize a scraper: %w", err))
@@ -95,42 +112,20 @@ func main() {
 			ss = append(ss, s)
 		}
 
-		// initialize aggregator
 		var err error
-		songSvc, err = scraper.NewAggregator(ss...)
+		scraperSvc, err = scraper.NewAggregator(ss...)
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
 		}
 
-		songSvc = scraper.LoggingMiddleware(
+		scraperSvc = scraper.LoggingMiddleware(
 			log.With(
 				logger,
 				"component", "aggregator",
 			),
-		)(songSvc)
+		)(scraperSvc)
 	}
 
-	// initialize songs endpoints
-	var songEndpoints scraper.Endpoints
-	{
-		songEndpoints = scraper.Endpoints{
-			GetSong:     scraper.MakeGetSongEndpoint(songSvc),
-			GetSongs:    scraper.MakeGetSongsEndpoint(songSvc),
-			GetPreviews: scraper.MakeGetPreviewsEndpoint(songSvc),
-		}
-	}
-
-	// initialize song http handler
-	var songHTTPHandler http.Handler
-	{
-		songHTTPHandler = scraper.NewHTTPHandler(
-			"/api/songs",
-			songEndpoints,
-			logger,
-		)
-	}
-
-	// initialize docs service
 	var docsSvc docs.Service
 	{
 		var err error
@@ -140,7 +135,17 @@ func main() {
 		}
 	}
 
-	// initialize docs endpoints
+	_ = logger.Log("msg", "initialize endpoints")
+
+	var scraperEndpoints scraper.Endpoints
+	{
+		scraperEndpoints = scraper.Endpoints{
+			GetSong:     scraper.MakeGetSongEndpoint(scraperSvc),
+			GetSongs:    scraper.MakeGetSongsEndpoint(scraperSvc),
+			GetPreviews: scraper.MakeGetPreviewsEndpoint(scraperSvc),
+		}
+	}
+
 	var docsEndpoints docs.Endpoints
 	{
 		docsEndpoints = docs.Endpoints{
@@ -148,31 +153,62 @@ func main() {
 		}
 	}
 
-	// initialize docs http handler
-	var docsHTTPHandler http.Handler
+	_ = logger.Log("msg", "initialize http server")
+
+	var httpServer *http.Server
 	{
-		docsHTTPHandler = docs.NewHTTPHandler(
-			"/",
-			docsEndpoints,
-			log.With(logger, "component", "http"),
+		router := mux.
+			NewRouter().
+			StrictSlash(true)
+
+		logger := log.With(logger, "component", "http")
+
+		if cfg.Health.Enabled {
+			router.
+				Path(cfg.Health.Path).
+				Methods(http.MethodGet).
+				Handler(
+					health.NewHTTPHandler(
+						health.MakeEndpoint(health.NewNopService()),
+						logger,
+					),
+				)
+		}
+
+		// TODO: fix duplicate path prefixes
+
+		router.PathPrefix("/api/songs").Handler(
+			scraper.NewHTTPHandler(
+				"/api/songs",
+				scraperEndpoints,
+				logger,
+			),
 		)
-	}
+		router.PathPrefix("/").Handler(
+			docs.NewHTTPHandler(
+				"/",
+				docsEndpoints,
+				logger,
+			),
+		)
 
-	// initialize router
-	var httpHandler http.Handler
-	{
-		router := mux.NewRouter().StrictSlash(true)
+		addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+		httpServer = &http.Server{
+			Addr:    addr,
+			Handler: router,
+		}
 
-		router.PathPrefix("/api/songs").Handler(songHTTPHandler)
-		router.PathPrefix("/").Handler(docsHTTPHandler)
-
-		httpHandler = router
+		defer func() {
+			if err := httpServer.Shutdown(ctx); err != nil {
+				fatal(logger, fmt.Errorf("failed to shutdown http server: %w", err))
+			}
+		}()
 	}
 
 	errc := make(chan error, 1)
 
 	go func() {
-		if err := http.ListenAndServe(cfg.Server.Addr, httpHandler); err != nil {
+		if err := httpServer.ListenAndServe(); err != nil {
 			errc <- err
 		}
 	}()

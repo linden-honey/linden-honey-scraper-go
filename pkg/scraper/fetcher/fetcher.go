@@ -72,6 +72,7 @@ type RetryConfig struct {
 
 func WithRetry(cfg RetryConfig) Option {
 	return func(f *Fetcher) {
+		// TODO: rewrite with simple attempts count and time.Sleep retry
 		f.client = httpclient.NewClient(
 			httpclient.WithRetryCount(cfg.Retries),
 			httpclient.WithRetrier(

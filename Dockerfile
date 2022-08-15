@@ -17,7 +17,6 @@ WORKDIR $WORK_DIR
 
 ENV SERVER_HOST=0.0.0.0 \
     SERVER_PORT=80
-ENV SERVER_ADDR=$SERVER_HOST:$SERVER_PORT
 
 COPY --from=builder /go/bin/server /bin/server
 COPY api/ ./api

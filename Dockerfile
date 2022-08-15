@@ -7,7 +7,6 @@ RUN go mod download
 
 COPY cmd ./cmd
 COPY pkg ./pkg
-COPY config ./config
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go install -v -ldflags="-w -s" ./cmd/server
 
 FROM alpine:3.13

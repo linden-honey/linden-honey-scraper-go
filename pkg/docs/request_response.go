@@ -1,10 +1,10 @@
 package docs
 
-//GetSpecRequest represents a request object
+// GetSpecRequest represents a request object
 type GetSpecRequest struct {
 }
 
-//GetSpecResponse represents a response object
+// GetSpecResponse represents a response object
 type GetSpecResponse struct {
 	Spec *Spec
 }

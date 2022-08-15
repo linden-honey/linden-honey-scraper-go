@@ -4,30 +4,30 @@ import (
 	"github.com/linden-honey/linden-honey-go/pkg/song"
 )
 
-//GetSongRequest represents a request object
+// GetSongRequest represents a request object
 type GetSongRequest struct {
 	ID string
 }
 
-//GetSongResponse represents a response object
+// GetSongResponse represents a response object
 type GetSongResponse struct {
 	Result *song.Song
 }
 
-//GetSongsRequest represents a request object
+// GetSongsRequest represents a request object
 type GetSongsRequest struct {
 }
 
-//GetSongsResponse represents a response object
+// GetSongsResponse represents a response object
 type GetSongsResponse struct {
 	Results []song.Song
 }
 
-//GetPreviewsRequest represents a request object
+// GetPreviewsRequest represents a request object
 type GetPreviewsRequest struct {
 }
 
-//GetPreviewsResponse represents a response object
+// GetPreviewsResponse represents a response object
 type GetPreviewsResponse struct {
 	Results []song.Meta
 }

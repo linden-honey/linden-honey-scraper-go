@@ -12,8 +12,8 @@ import (
 	"github.com/gorilla/mux"
 	"golang.org/x/text/encoding/charmap"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 
 	"github.com/linden-honey/linden-honey-sdk-go/validation"
 

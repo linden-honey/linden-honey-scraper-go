@@ -28,8 +28,8 @@ func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.
 		Methods("GET").
 		Handler(httptransport.NewServer(
 			endpoints.GetSpec,
-			decodeGetSpecRequest,
-			encodeGetSpecResponse,
+			decodeGetSpecHTTPRequest,
+			encodeGetSpecHTTPResponse,
 			opts...,
 		))
 	r.
@@ -42,11 +42,11 @@ func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.
 	return r
 }
 
-func decodeGetSpecRequest(_ context.Context, _ *http.Request) (interface{}, error) {
+func decodeGetSpecHTTPRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return GetSpecRequest{}, nil
 }
 
-func encodeGetSpecResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeGetSpecHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	res := response.(GetSpecResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	w.WriteHeader(http.StatusOK)

@@ -31,8 +31,8 @@ func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.
 		Queries("view", "preview").
 		Handler(httptransport.NewServer(
 			endpoints.GetPreviews,
-			decodeGetPreviewsRequest,
-			encodeGetPreviewsResponse,
+			decodeGetPreviewsHTTPRequest,
+			encodeGetPreviewsHTTPResponse,
 			opts...,
 		))
 	router.
@@ -40,8 +40,8 @@ func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.
 		Methods("GET").
 		Handler(httptransport.NewServer(
 			endpoints.GetSongs,
-			decodeGetSongsRequest,
-			encodeGetSongsResponse,
+			decodeGetSongsHTTPRequest,
+			encodeGetSongsHTTPResponse,
 			opts...,
 		))
 	router.
@@ -49,15 +49,15 @@ func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.
 		Methods("GET").
 		Handler(httptransport.NewServer(
 			endpoints.GetSong,
-			decodeGetSongRequest,
-			encodeGetSongResponse,
+			decodeGetSongHTTPRequest,
+			encodeGetSongHTTPResponse,
 			opts...,
 		))
 
 	return router
 }
 
-func decodeGetSongRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeGetSongHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 	if !ok {
@@ -68,7 +68,7 @@ func decodeGetSongRequest(_ context.Context, r *http.Request) (interface{}, erro
 	}, nil
 }
 
-func encodeGetSongResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeGetSongHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	res := response.(GetSongResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Result); err != nil {
@@ -77,11 +77,11 @@ func encodeGetSongResponse(ctx context.Context, w http.ResponseWriter, response 
 	return nil
 }
 
-func decodeGetSongsRequest(_ context.Context, _ *http.Request) (interface{}, error) {
+func decodeGetSongsHTTPRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return GetSongsRequest{}, nil
 }
 
-func encodeGetSongsResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeGetSongsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	res := response.(GetSongsResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {
@@ -91,11 +91,11 @@ func encodeGetSongsResponse(ctx context.Context, w http.ResponseWriter, response
 	return nil
 }
 
-func decodeGetPreviewsRequest(_ context.Context, _ *http.Request) (interface{}, error) {
+func decodeGetPreviewsHTTPRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return GetPreviewsRequest{}, nil
 }
 
-func encodeGetPreviewsResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeGetPreviewsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	res := response.(GetPreviewsResponse)
 	httptransport.SetContentType("application/json")(ctx, w)
 	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {

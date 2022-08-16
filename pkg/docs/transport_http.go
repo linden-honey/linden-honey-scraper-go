@@ -5,12 +5,11 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/gorilla/mux"
-	swagger "github.com/swaggo/http-swagger"
-
-	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/go-kit/log"
+	"github.com/gorilla/mux"
+	swagger "github.com/swaggo/http-swagger"
 )
 
 // NewHTTPHandler returns the new instance of http.Handler

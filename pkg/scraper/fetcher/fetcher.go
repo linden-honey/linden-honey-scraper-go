@@ -3,7 +3,7 @@ package fetcher
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -123,7 +123,7 @@ func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
 	}()
 
 	decoder := f.encoding.NewDecoder()
-	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
+	body, err := io.ReadAll(decoder.Reader(res.Body))
 	if err != nil {
 		return "", fmt.Errorf("failed to read a response: %w", err)
 	}

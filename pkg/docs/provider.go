@@ -3,7 +3,7 @@ package docs
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 // Provider represents spec provider
@@ -22,7 +22,7 @@ func NewProvider(specPath string) (*Provider, error) {
 // GetSpec returns specification from fs or cache or an error
 func (sp *Provider) GetSpec(_ context.Context) (*Spec, error) {
 	if sp.spec == nil {
-		specBytes, err := ioutil.ReadFile(sp.specPath)
+		specBytes, err := os.ReadFile(sp.specPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read a spec file: %w", err)
 		}

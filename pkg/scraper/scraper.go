@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/linden-honey/linden-honey-go/pkg/song"
-	"github.com/linden-honey/linden-honey-sdk-go/validation"
+	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
 
 // Fetcher represents the content fetcher interface
@@ -20,45 +20,75 @@ type Parser interface {
 	ParsePreviews(in string) ([]song.Meta, error)
 }
 
-// Validator represents the validator interface
-type Validator interface {
-	Validate(in validation.Validator) error
-}
-
-// Scraper represents the default scraper implementation
+// Scraper represents default scraper implementation
 type Scraper struct {
-	fetcher   Fetcher
-	parser    Parser
-	validator Validator
+	f Fetcher
+	p Parser
+
+	validation bool
 }
 
-// NewScraper returns a pointer to the new instance of Scraper or an error
+// Option set optional parameters for the scraper
+type Option func(*Scraper)
+
+// NewScraper returns a pointer to the new instance of scraper or an error
 func NewScraper(
-	fetcher Fetcher,
-	parser Parser,
-	validator Validator,
+	f Fetcher,
+	p Parser,
+	opts ...Option,
 ) (*Scraper, error) {
-	return &Scraper{
-		fetcher:   fetcher,
-		parser:    parser,
-		validator: validator,
-	}, nil
+	scr := &Scraper{
+		f: f,
+		p: p,
+	}
+
+	for _, opt := range opts {
+		opt(scr)
+	}
+
+	if err := scr.Validate(); err != nil {
+		return nil, err
+	}
+
+	return scr, nil
+}
+
+// WithValidation enables or disables validation
+func WithValidation(validation bool) Option {
+	return func(scr *Scraper) {
+		scr.validation = validation
+	}
+}
+
+// Validate validates scraper configuration
+func (scr *Scraper) Validate() error {
+	if scr.f == nil {
+		return sdkerrors.NewRequiredValueError("f")
+	}
+
+	if scr.p == nil {
+		return sdkerrors.NewRequiredValueError("p")
+	}
+
+	return nil
 }
 
 // GetSong scrapes a song from some source and returns it or an error
 func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) {
-	data, err := scr.fetcher.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
+	data, err := scr.f.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	s, err := scr.parser.ParseSong(data)
+	s, err := scr.p.ParseSong(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse a song: %w", err)
 	}
 
-	if err := scr.validator.Validate(s); err != nil {
-		return nil, fmt.Errorf("failed to validate a song %v: %w", s, err)
+	if scr.validation {
+		if err := s.Validate(); err != nil {
+			return nil, fmt.Errorf("failed to validate a song %v: %w", s, err)
+		}
 	}
 
 	return s, nil
@@ -108,19 +138,21 @@ loop:
 
 // GetPreviews scrapes previews from some source and returns them or an error
 func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Meta, error) {
-	data, err := scr.fetcher.Fetch(ctx, "texts")
+	data, err := scr.f.Fetch(ctx, "texts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	previews, err := scr.parser.ParsePreviews(data)
+	previews, err := scr.p.ParsePreviews(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse previews: %w", err)
 	}
 
 	for _, p := range previews {
-		if err := scr.validator.Validate(p); err != nil {
-			return nil, fmt.Errorf("failed to validate a preview %v: %w", p, err)
+		if scr.validation {
+			if err := p.Validate(); err != nil {
+				return nil, fmt.Errorf("failed to validate a preview %v: %w", p, err)
+			}
 		}
 	}
 

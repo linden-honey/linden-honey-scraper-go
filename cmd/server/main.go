@@ -17,11 +17,11 @@ import (
 	"github.com/go-kit/log/level"
 
 	"github.com/linden-honey/linden-honey-sdk-go/health"
-	"github.com/linden-honey/linden-honey-sdk-go/validation"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/aggregator"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/fetcher"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 )
@@ -63,18 +63,16 @@ func main() {
 
 	var scraperSvc scraper.Service
 	{
-		ss := make([]scraper.Service, 0)
+		services := make([]scraper.Service, 0)
 		for id, scrCfg := range cfg.Scrapers {
-			u, err := url.Parse(scrCfg.BaseURL)
+			baseURL, err := url.Parse(scrCfg.BaseURL)
 			if err != nil {
 				fatal(logger, fmt.Errorf("failed to parse scraper base url: %w", err))
 			}
 
 			f, err := fetcher.NewFetcher(
-				fetcher.Config{
-					BaseURL:        u,
-					SourceEncoding: charmap.Windows1251,
-				},
+				baseURL,
+				charmap.Windows1251,
 				fetcher.WithRetry(fetcher.RetryConfig{
 					Retries:           5,
 					Factor:            3,
@@ -92,28 +90,28 @@ func main() {
 				fatal(logger, fmt.Errorf("failed to initialize a parser: %w", err))
 			}
 
-			v, err := validation.NewDelegate()
-			if err != nil {
-				fatal(logger, fmt.Errorf("failed to initialize a validator: %w", err))
-			}
-
-			scr, err := scraper.NewScraper(f, p, v)
+			var svc scraper.Service
+			svc, err = scraper.NewScraper(
+				f,
+				p,
+				scraper.WithValidation(true),
+			)
 			if err != nil {
 				fatal(logger, fmt.Errorf("failed to initialize a scraper: %w", err))
 			}
 
-			s := scraper.LoggingMiddleware(
+			svc = scraper.LoggingMiddleware(
 				log.With(
 					logger,
 					"component", "scraper", "scraper_id", id,
 				),
-			)(scr)
+			)(svc)
 
-			ss = append(ss, s)
+			services = append(services, svc)
 		}
 
 		var err error
-		scraperSvc, err = scraper.NewAggregator(ss...)
+		scraperSvc, err = aggregator.NewAggregator(services...)
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
 		}

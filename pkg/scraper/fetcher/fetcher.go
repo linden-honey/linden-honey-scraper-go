@@ -19,52 +19,39 @@ type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-// Fetcher represents the default fetcher implementation
+// Fetcher represents default fetcher implementation
 type Fetcher struct {
-	client         httpClient
-	baseURL        *url.URL
-	sourceEncoding *charmap.Charmap
+	client httpClient
+
+	baseURL  *url.URL
+	encoding *charmap.Charmap
 }
 
-// Config represents common Fetcher configuration
-type Config struct {
-	BaseURL        *url.URL
-	SourceEncoding *charmap.Charmap
-}
+// Option set optional parameters for the fetcher
+type Option func(*Fetcher)
 
-// Validate validates Fetcher configuration
-func (cfg *Config) Validate() error {
-	if cfg.BaseURL == nil {
-		return sdkerrors.NewRequiredValueError("BaseURL")
-	}
-
-	if cfg.SourceEncoding == nil {
-		return sdkerrors.NewRequiredValueError("SourceEncoding")
-	}
-
-	return nil
-}
-
-// NewFetcher returns a pointer to the new instance of Fetcher or an error
-func NewFetcher(cfg Config, opts ...Option) (*Fetcher, error) {
-	if err := cfg.Validate(); err != nil {
-		return nil, sdkerrors.NewInvalidValueError("Config", err)
-	}
-
+// NewFetcher returns a pointer to the new instance of fetcher or an error
+func NewFetcher(
+	baseURL *url.URL,
+	encoding *charmap.Charmap,
+	opts ...Option,
+) (*Fetcher, error) {
 	f := &Fetcher{
-		client:         httpclient.NewClient(),
-		baseURL:        cfg.BaseURL,
-		sourceEncoding: cfg.SourceEncoding,
+		client:   httpclient.NewClient(),
+		baseURL:  baseURL,
+		encoding: encoding,
 	}
 
 	for _, opt := range opts {
 		opt(f)
 	}
 
+	if err := f.Validate(); err != nil {
+		return nil, err
+	}
+
 	return f, nil
 }
-
-type Option func(*Fetcher)
 
 // RetryConfig represents the retry configuration
 type RetryConfig struct {
@@ -94,6 +81,23 @@ func WithRetry(cfg RetryConfig) Option {
 	}
 }
 
+// Validate validates fetcher configuration
+func (f *Fetcher) Validate() error {
+	if f.client == nil {
+		return sdkerrors.NewRequiredValueError("client")
+	}
+
+	if f.baseURL == nil {
+		return sdkerrors.NewRequiredValueError("baseURL")
+	}
+
+	if f.encoding == nil {
+		return sdkerrors.NewRequiredValueError("encoding")
+	}
+
+	return nil
+}
+
 // Fetch send GET request under relative path and returns content as a string
 func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
 	fetchURL, err := f.baseURL.Parse(path)
@@ -118,7 +122,7 @@ func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
 		_ = res.Body.Close()
 	}()
 
-	decoder := f.sourceEncoding.NewDecoder()
+	decoder := f.encoding.NewDecoder()
 	body, err := ioutil.ReadAll(decoder.Reader(res.Body))
 	if err != nil {
 		return "", fmt.Errorf("failed to read a response: %w", err)

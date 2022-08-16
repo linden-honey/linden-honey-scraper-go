@@ -19,7 +19,7 @@ type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-// Fetcher represents default fetcher implementation
+// Fetcher represents fetcher implementation
 type Fetcher struct {
 	client httpClient
 
@@ -30,7 +30,7 @@ type Fetcher struct {
 // Option set optional parameters for the fetcher
 type Option func(*Fetcher)
 
-// NewFetcher returns a pointer to the new instance of fetcher or an error
+// NewFetcher returns a pointer to the new instance of the fetcher or an error
 func NewFetcher(
 	baseURL *url.URL,
 	encoding *charmap.Charmap,
@@ -81,7 +81,7 @@ func WithRetry(cfg RetryConfig) Option {
 	}
 }
 
-// Validate validates fetcher configuration
+// Validate validates fetcher struct
 func (f *Fetcher) Validate() error {
 	if f.client == nil {
 		return sdkerrors.NewRequiredValueError("client")

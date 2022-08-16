@@ -14,13 +14,13 @@ type Fetcher interface {
 	Fetch(ctx context.Context, path string) (string, error)
 }
 
-// Parser represents the parser interface
+// Parser represents the content parser interface
 type Parser interface {
 	ParseSong(in string) (*song.Song, error)
 	ParsePreviews(in string) ([]song.Meta, error)
 }
 
-// Scraper represents default scraper implementation
+// Scraper represents scraper implementation
 type Scraper struct {
 	fetcher Fetcher
 	parser  Parser
@@ -31,7 +31,7 @@ type Scraper struct {
 // Option set optional parameters for the scraper
 type Option func(*Scraper)
 
-// NewScraper returns a pointer to the new instance of scraper or an error
+// NewScraper returns a pointer to the new instance of the scraper or an error
 func NewScraper(
 	f Fetcher,
 	p Parser,
@@ -60,7 +60,7 @@ func WithValidation(validation bool) Option {
 	}
 }
 
-// Validate validates scraper configuration
+// Validate validates scraper struct
 func (scr *Scraper) Validate() error {
 	if scr.fetcher == nil {
 		return sdkerrors.NewRequiredValueError("fetcher")

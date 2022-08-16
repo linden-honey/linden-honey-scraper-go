@@ -11,7 +11,7 @@ var (
 			Path:    "/health",
 		},
 		Scrapers: ScraperConfigs{
-			"grob": ScraperConfig{
+			Grob: ScraperConfig{
 				BaseURL: "http://www.gr-oborona.ru/",
 			},
 		},

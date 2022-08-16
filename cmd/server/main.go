@@ -4,17 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
-	"golang.org/x/text/encoding/charmap"
-
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 
 	"github.com/linden-honey/linden-honey-sdk-go/health"
 
@@ -22,7 +18,6 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/aggregator"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/fetcher"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 )
 
@@ -42,9 +37,7 @@ func main() {
 
 	var logger log.Logger
 	{
-		logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
-		logger = level.NewFilter(logger, level.AllowDebug())
-		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+		logger = newLogger()
 	}
 
 	_ = logger.Log("msg", "initialization of the application")
@@ -54,74 +47,43 @@ func main() {
 	var cfg *config.Config
 	{
 		var err error
-		if cfg, err = config.NewConfig(); err != nil {
+		cfg, err = config.NewConfig()
+		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize a config: %w", err))
 		}
 	}
 
 	_ = logger.Log("msg", "initialize services")
 
-	var scraperSvc scraper.Service
+	var scrSvc scraper.Service
 	{
-		services := make([]scraper.Service, 0)
-		for id, scrCfg := range cfg.Scrapers {
-			baseURL, err := url.Parse(scrCfg.BaseURL)
+		var err error
+		var grobScrSvc scraper.Service
+		{
+			grobScrSvc, err = newScraper(cfg.Scrapers.Grob, parser.NewGrobParser())
 			if err != nil {
-				fatal(logger, fmt.Errorf("failed to parse scraper base url: %w", err))
+				fatal(logger, fmt.Errorf("failed to initialize grob scraper: %w", err))
 			}
 
-			f, err := fetcher.NewFetcher(
-				baseURL,
-				charmap.Windows1251,
-				fetcher.WithRetry(fetcher.RetryConfig{
-					Retries:           5,
-					Factor:            3,
-					MinTimeout:        time.Second * 1,
-					MaxTimeout:        time.Second * 6,
-					MaxJitterInterval: time.Second,
-				}),
-			)
-			if err != nil {
-				fatal(logger, fmt.Errorf("failed to initialize a fetcher: %w", err))
-			}
-
-			p, err := parser.NewParser(id)
-			if err != nil {
-				fatal(logger, fmt.Errorf("failed to initialize a parser: %w", err))
-			}
-
-			var svc scraper.Service
-			svc, err = scraper.NewScraper(
-				f,
-				p,
-				scraper.WithValidation(true),
-			)
-			if err != nil {
-				fatal(logger, fmt.Errorf("failed to initialize a scraper: %w", err))
-			}
-
-			svc = scraper.LoggingMiddleware(
+			grobScrSvc = scraper.LoggingMiddleware(
 				log.With(
 					logger,
-					"component", "scraper", "scraper_id", id,
+					"component", "scraper",
+					"scraper_id", "grob",
 				),
-			)(svc)
-
-			services = append(services, svc)
+			)(grobScrSvc)
 		}
 
-		var err error
-		scraperSvc, err = aggregator.NewAggregator(services...)
+		scrSvc, err = aggregator.NewAggregator(
+			grobScrSvc,
+		)
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
 		}
 
-		scraperSvc = scraper.LoggingMiddleware(
-			log.With(
-				logger,
-				"component", "aggregator",
-			),
-		)(scraperSvc)
+		scrSvc = scraper.LoggingMiddleware(
+			log.With(logger, "component", "aggregator"),
+		)(scrSvc)
 	}
 
 	var docsSvc docs.Service
@@ -138,9 +100,9 @@ func main() {
 	var scraperEndpoints scraper.Endpoints
 	{
 		scraperEndpoints = scraper.Endpoints{
-			GetSong:     scraper.MakeGetSongEndpoint(scraperSvc),
-			GetSongs:    scraper.MakeGetSongsEndpoint(scraperSvc),
-			GetPreviews: scraper.MakeGetPreviewsEndpoint(scraperSvc),
+			GetSong:     scraper.MakeGetSongEndpoint(scrSvc),
+			GetSongs:    scraper.MakeGetSongsEndpoint(scrSvc),
+			GetPreviews: scraper.MakeGetPreviewsEndpoint(scrSvc),
 		}
 	}
 
@@ -219,9 +181,4 @@ func main() {
 
 	_ = logger.Log("msg", "application started")
 	_ = logger.Log("msg", "application stopped", "exit", <-errc)
-}
-
-func fatal(logger log.Logger, err error) {
-	_ = logger.Log("err: %w", err)
-	os.Exit(1)
 }

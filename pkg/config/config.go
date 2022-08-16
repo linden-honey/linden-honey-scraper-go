@@ -30,13 +30,15 @@ type ScraperConfig struct {
 	BaseURL string `env:"SCRAPER_BASE_URL"`
 }
 
-type ScraperConfigs map[string]ScraperConfig
+type ScraperConfigs struct {
+	Grob ScraperConfig `envPrefix:"GROB_"`
+}
 
 // NewConfig returns a pointer to the new instance of Config or an error
 func NewConfig() (*Config, error) {
 	cfg := DefaultConfig
 	if err := env.Parse(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to parse config: %w", err)
+		return nil, fmt.Errorf("failed to parse env: %w", err)
 	}
 
 	return &cfg, nil

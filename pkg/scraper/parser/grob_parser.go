@@ -10,8 +10,6 @@ import (
 	"github.com/linden-honey/linden-honey-go/pkg/song"
 )
 
-const GrobParserID = "grob"
-
 // GrobParser represents the parser implementation for gr-oborona.ru
 type GrobParser struct {
 }

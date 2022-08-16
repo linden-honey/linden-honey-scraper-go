@@ -22,8 +22,8 @@ type Parser interface {
 
 // Scraper represents default scraper implementation
 type Scraper struct {
-	f Fetcher
-	p Parser
+	fetcher Fetcher
+	parser  Parser
 
 	validation bool
 }
@@ -38,8 +38,8 @@ func NewScraper(
 	opts ...Option,
 ) (*Scraper, error) {
 	scr := &Scraper{
-		f: f,
-		p: p,
+		fetcher: f,
+		parser:  p,
 	}
 
 	for _, opt := range opts {
@@ -62,12 +62,12 @@ func WithValidation(validation bool) Option {
 
 // Validate validates scraper configuration
 func (scr *Scraper) Validate() error {
-	if scr.f == nil {
-		return sdkerrors.NewRequiredValueError("f")
+	if scr.fetcher == nil {
+		return sdkerrors.NewRequiredValueError("fetcher")
 	}
 
-	if scr.p == nil {
-		return sdkerrors.NewRequiredValueError("p")
+	if scr.parser == nil {
+		return sdkerrors.NewRequiredValueError("parser")
 	}
 
 	return nil
@@ -75,12 +75,12 @@ func (scr *Scraper) Validate() error {
 
 // GetSong scrapes a song from some source and returns it or an error
 func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) {
-	data, err := scr.f.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
+	data, err := scr.fetcher.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	s, err := scr.p.ParseSong(data)
+	s, err := scr.parser.ParseSong(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse a song: %w", err)
 	}
@@ -138,12 +138,12 @@ loop:
 
 // GetPreviews scrapes previews from some source and returns them or an error
 func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Meta, error) {
-	data, err := scr.f.Fetch(ctx, "texts")
+	data, err := scr.fetcher.Fetch(ctx, "texts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	previews, err := scr.p.ParsePreviews(data)
+	previews, err := scr.parser.ParsePreviews(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse previews: %w", err)
 	}

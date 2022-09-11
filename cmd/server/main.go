@@ -129,8 +129,7 @@ func main() {
 				Methods(http.MethodGet).
 				Handler(
 					health.NewHTTPHandler(
-						health.MakeEndpoint(health.NewNopService()),
-						logger,
+						health.NewNopService(),
 					),
 				)
 		}

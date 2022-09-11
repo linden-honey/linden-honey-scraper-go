@@ -19,7 +19,7 @@ type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-// Fetcher represents fetcher implementation
+// Fetcher represents an implementation of the fetcher
 type Fetcher struct {
 	client httpClient
 
@@ -30,7 +30,7 @@ type Fetcher struct {
 // Option set optional parameters for the fetcher
 type Option func(*Fetcher)
 
-// NewFetcher returns a pointer to the new instance of the fetcher or an error
+// NewFetcher returns a pointer to a new instance of the fetcher or an error
 func NewFetcher(
 	baseURL *url.URL,
 	encoding *charmap.Charmap,
@@ -53,7 +53,7 @@ func NewFetcher(
 	return f, nil
 }
 
-// RetryConfig represents the retry configuration
+// RetryConfig represents the retry configuration of the fetcher
 type RetryConfig struct {
 	Retries           int
 	Factor            float64
@@ -62,6 +62,7 @@ type RetryConfig struct {
 	MaxJitterInterval time.Duration
 }
 
+// WithRetry sets the retry configuration of the fetcher
 func WithRetry(cfg RetryConfig) Option {
 	return func(f *Fetcher) {
 		// TODO: rewrite with simple attempts count and time.Sleep retry

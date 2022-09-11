@@ -6,20 +6,20 @@ import (
 	"os"
 )
 
-// Provider represents spec provider
+// Provider represents a specification provider
 type Provider struct {
 	spec     *Spec
 	specPath string
 }
 
-// NewProvider returns a pointer to the new instance of Provider or an error
+// NewProvider returns a pointer to a new instance of the provider or an error
 func NewProvider(specPath string) (*Provider, error) {
 	return &Provider{
 		specPath: specPath,
 	}, nil
 }
 
-// GetSpec returns specification from fs or cache or an error
+// GetSpec returns a specification from the file system or cache or an error
 func (sp *Provider) GetSpec(_ context.Context) (*Spec, error) {
 	if sp.spec == nil {
 		specBytes, err := os.ReadFile(sp.specPath)

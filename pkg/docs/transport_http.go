@@ -12,7 +12,7 @@ import (
 	swagger "github.com/swaggo/http-swagger"
 )
 
-// NewHTTPHandler returns the new instance of http.Handler
+// NewHTTPHandler returns the a instance of http.Handler
 func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.Handler {
 	opts := []httptransport.ServerOption{
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),

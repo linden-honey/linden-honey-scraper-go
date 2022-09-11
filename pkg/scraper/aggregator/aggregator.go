@@ -8,19 +8,19 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 )
 
-// Aggregator represents the aggregation service implementation
+// Aggregator represents an aggregation service implementation
 type Aggregator struct {
 	services []scraper.Service
 }
 
-// NewAggregator returns a pointer to the new instance of Aggregator or an error
+// NewAggregator returns a pointer to a new instance of the aggregator or an error
 func NewAggregator(services ...scraper.Service) (*Aggregator, error) {
 	return &Aggregator{
 		services: services,
 	}, nil
 }
 
-// GetSong returns a pointer to the song or an error from aggregated services
+// GetSong returns a pointer to a song or an error from aggregated services
 func (a *Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error) {
 	errs := make([]error, 0)
 	for _, svc := range a.services {

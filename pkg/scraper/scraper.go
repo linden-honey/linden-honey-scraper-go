@@ -20,7 +20,7 @@ type Parser interface {
 	ParsePreviews(in string) ([]song.Meta, error)
 }
 
-// Scraper represents scraper implementation
+// Scraper represents an implementation of the scraper
 type Scraper struct {
 	fetcher Fetcher
 	parser  Parser
@@ -31,7 +31,7 @@ type Scraper struct {
 // Option set optional parameters for the scraper
 type Option func(*Scraper)
 
-// NewScraper returns a pointer to the new instance of the scraper or an error
+// NewScraper returns a pointer to a new instance of the scraper or an error
 func NewScraper(
 	f Fetcher,
 	p Parser,

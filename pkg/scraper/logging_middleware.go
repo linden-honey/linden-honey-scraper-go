@@ -6,7 +6,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 
-	"github.com/linden-honey/linden-honey-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
 // LoggingMiddleware returns the logging middleware for the scraper service
@@ -70,7 +70,7 @@ func (mw *loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err 
 }
 
 // GetPreviews proxies call to service with logging
-func (mw *loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Meta, err error) {
+func (mw *loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Metadata, err error) {
 	_ = level.Debug(mw.logger).Log(
 		"msg", "getting previews",
 	)

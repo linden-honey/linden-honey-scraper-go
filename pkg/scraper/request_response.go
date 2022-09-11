@@ -1,7 +1,7 @@
 package scraper
 
 import (
-	"github.com/linden-honey/linden-honey-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
 // GetSongRequest represents a request object
@@ -29,5 +29,5 @@ type GetPreviewsRequest struct {
 
 // GetPreviewsResponse represents a response object
 type GetPreviewsResponse struct {
-	Results []song.Meta
+	Results []song.Metadata
 }

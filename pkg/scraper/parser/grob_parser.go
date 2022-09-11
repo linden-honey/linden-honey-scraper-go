@@ -7,7 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/linden-honey/linden-honey-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
 // GrobParser represents the parser implementation for gr-oborona.ru
@@ -100,7 +100,7 @@ func (p *GrobParser) ParseSong(in string) (*song.Song, error) {
 	}
 
 	return &song.Song{
-		Meta: song.Meta{
+		Metadata: song.Metadata{
 			ID:     id,
 			Title:  title,
 			Author: author,
@@ -111,13 +111,13 @@ func (p *GrobParser) ParseSong(in string) (*song.Song, error) {
 }
 
 // ParsePreviews parses html and returns a slice of pointers of the Preview instances
-func (p *GrobParser) ParsePreviews(in string) ([]song.Meta, error) {
+func (p *GrobParser) ParsePreviews(in string) ([]song.Metadata, error) {
 	document, err := p.parseHTML(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
 
-	previews := make([]song.Meta, 0)
+	previews := make([]song.Metadata, 0)
 	document.Find("#abc_list a").Each(func(_ int, link *goquery.Selection) {
 		path, pathExists := link.Attr("href")
 		if pathExists {
@@ -126,7 +126,7 @@ func (p *GrobParser) ParsePreviews(in string) ([]song.Meta, error) {
 			if startIndex != -1 && endIndex != -1 {
 				id := path[startIndex+1 : endIndex]
 				title := link.Text()
-				previews = append(previews, song.Meta{
+				previews = append(previews, song.Metadata{
 					ID:    id,
 					Title: title,
 				})

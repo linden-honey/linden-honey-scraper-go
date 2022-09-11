@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/linden-honey/linden-honey-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
 
@@ -17,7 +17,7 @@ type Fetcher interface {
 // Parser represents the content parser interface
 type Parser interface {
 	ParseSong(in string) (*song.Song, error)
-	ParsePreviews(in string) ([]song.Meta, error)
+	ParsePreviews(in string) ([]song.Metadata, error)
 }
 
 // Scraper represents an implementation of the scraper
@@ -137,7 +137,7 @@ loop:
 }
 
 // GetPreviews scrapes previews from some source and returns them or an error
-func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Meta, error) {
+func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 	data, err := scr.fetcher.Fetch(ctx, "texts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)

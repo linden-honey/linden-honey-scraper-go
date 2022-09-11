@@ -3,7 +3,7 @@ package aggregator
 import (
 	"context"
 
-	"github.com/linden-honey/linden-honey-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 )
@@ -58,8 +58,8 @@ func (a *Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 }
 
 // GetPreviews returns previews or an error from aggregated services
-func (a *Aggregator) GetPreviews(ctx context.Context) ([]song.Meta, error) {
-	out := make([]song.Meta, 0)
+func (a *Aggregator) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
+	out := make([]song.Metadata, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		previews, err := svc.GetPreviews(ctx)

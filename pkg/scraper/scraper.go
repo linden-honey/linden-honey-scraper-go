@@ -85,6 +85,8 @@ func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 		return nil, fmt.Errorf("failed to parse a song: %w", err)
 	}
 
+	s.ID = id // backfill ID
+
 	if scr.validation {
 		if err := s.Validate(); err != nil {
 			return nil, fmt.Errorf("failed to validate a song %v: %w", s, err)

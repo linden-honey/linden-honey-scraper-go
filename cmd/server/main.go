@@ -9,8 +9,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
 
 	"github.com/linden-honey/linden-honey-sdk-go/health"
 
@@ -27,10 +28,9 @@ func main() {
 	)
 	{
 		ctx = context.Background()
-		ctx, cancel = context.WithCancel(ctx)
+		ctx, cancel = context.WithTimeout(ctx, 3*time.Second)
 		defer func() {
 			cancel()
-			time.Sleep(3 * time.Second)
 		}()
 	}
 
@@ -85,52 +85,25 @@ func main() {
 		)(scrSvc)
 	}
 
-	_ = logger.Log("msg", "initialize endpoints")
-
-	var scraperEndpoints scraper.Endpoints
-	{
-		scraperEndpoints = scraper.Endpoints{
-			GetSong:     scraper.MakeGetSongEndpoint(scrSvc),
-			GetSongs:    scraper.MakeGetSongsEndpoint(scrSvc),
-			GetPreviews: scraper.MakeGetPreviewsEndpoint(scrSvc),
-		}
-	}
-
 	_ = logger.Log("msg", "initialize http server")
 
 	var httpServer *http.Server
 	{
-		router := mux.
-			NewRouter().
-			StrictSlash(true)
-
-		logger := log.With(logger, "component", "http")
+		r := chi.NewRouter()
+		r.Use(middleware.Recoverer)
 
 		if cfg.Health.Enabled {
-			router.
-				Path(cfg.Health.Path).
-				Methods(http.MethodGet).
-				Handler(
-					health.NewHTTPHandler(
-						health.NewNopService(),
-					),
-				)
+			r.Handle(cfg.Health.Path, health.NewHTTPHandler(health.NewNopService()))
 		}
 
-		// TODO: fix duplicate path prefixes
-
-		router.PathPrefix("/api/songs").Handler(
-			scraper.NewHTTPHandler(
-				"/api/songs",
-				scraperEndpoints,
-				logger,
-			),
-		)
+		r.Route("/api", func(r chi.Router) {
+			r.Mount("/songs", scraper.NewHTTPHandler(scrSvc))
+		})
 
 		addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 		httpServer = &http.Server{
 			Addr:    addr,
-			Handler: router,
+			Handler: r,
 		}
 
 		defer func() {
@@ -150,7 +123,7 @@ func main() {
 
 	go func() {
 		sigc := make(chan os.Signal, 1)
-		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+		signal.Notify(sigc, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 		errc <- fmt.Errorf("%s", <-sigc)
 	}()
 

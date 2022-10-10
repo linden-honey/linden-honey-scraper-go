@@ -1,106 +1,98 @@
 package scraper
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"net/http"
-	"path"
 
-	"github.com/go-kit/kit/transport"
-	httptransport "github.com/go-kit/kit/transport/http"
-	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
+
+	sdkhttp "github.com/linden-honey/linden-honey-sdk-go/transport/http"
 )
 
 // NewHTTPHandler returns the new instance of http.Handler
-func NewHTTPHandler(prefix string, endpoints Endpoints, logger log.Logger) http.Handler {
-	opts := []httptransport.ServerOption{
-		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
+func NewHTTPHandler(svc Service) http.Handler {
+	r := chi.NewRouter()
+
+	r.Get("/{id}", makeGetSongHTTPHandlerFunc(svc))
+	r.Get("/", makeGetSongsHTTPHandlerFunc(svc))
+	r.Get("/previews", makeGetPreviewsHTTPHandlerFunc(svc))
+
+	return r
+}
+
+func makeGetSongHTTPHandlerFunc(svc Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		s, err := svc.GetSong(r.Context(), id)
+		if err != nil {
+			_ = sdkhttp.EncodeJSONError(
+				w,
+				http.StatusInternalServerError,
+				fmt.Errorf("failed to get song by id=%s: %w", id, err),
+			)
+
+			return
+		}
+
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, s)
 	}
-
-	// initialize router
-	router := mux.
-		NewRouter().
-		StrictSlash(true)
-
-	// declare routes
-	router.
-		Path(path.Clean(prefix)).
-		Methods("GET").
-		Queries("view", "preview").
-		Handler(httptransport.NewServer(
-			endpoints.GetPreviews,
-			decodeGetPreviewsHTTPRequest,
-			encodeGetPreviewsHTTPResponse,
-			opts...,
-		))
-	router.
-		Path(path.Clean(prefix)).
-		Methods("GET").
-		Handler(httptransport.NewServer(
-			endpoints.GetSongs,
-			decodeGetSongsHTTPRequest,
-			encodeGetSongsHTTPResponse,
-			opts...,
-		))
-	router.
-		Path(path.Join(prefix, "{id}")).
-		Methods("GET").
-		Handler(httptransport.NewServer(
-			endpoints.GetSong,
-			decodeGetSongHTTPRequest,
-			encodeGetSongHTTPResponse,
-			opts...,
-		))
-
-	return router
 }
 
-func decodeGetSongHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		return nil, errors.New("missed song id")
+func QueriesMiddleware(pairs ...string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			length := len(pairs)
+			if length%2 != 0 {
+				return
+			}
+
+			for i := 0; i < length; i += 2 {
+				for key, values := range r.URL.Query() {
+					if key == pairs[i] {
+						for _, v := range values {
+							if v == pairs[i+1] {
+								next.ServeHTTP(w, r)
+
+								return
+							}
+						}
+					}
+				}
+			}
+		})
 	}
-	return GetSongRequest{
-		ID: id,
-	}, nil
 }
 
-func encodeGetSongHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	res := response.(GetSongResponse)
-	httptransport.SetContentType("application/json")(ctx, w)
-	if err := httptransport.EncodeJSONResponse(ctx, w, res.Result); err != nil {
-		return fmt.Errorf("failed to encode get song response: %w", err)
+func makeGetSongsHTTPHandlerFunc(svc Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s, err := svc.GetSongs(r.Context())
+		if err != nil {
+			_ = sdkhttp.EncodeJSONError(
+				w,
+				http.StatusInternalServerError,
+				fmt.Errorf("failed to get songs: %w", err),
+			)
+
+			return
+		}
+
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, s)
 	}
-	return nil
 }
 
-func decodeGetSongsHTTPRequest(_ context.Context, _ *http.Request) (interface{}, error) {
-	return GetSongsRequest{}, nil
-}
+func makeGetPreviewsHTTPHandlerFunc(svc Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s, err := svc.GetPreviews(r.Context())
+		if err != nil {
+			_ = sdkhttp.EncodeJSONError(
+				w,
+				http.StatusInternalServerError,
+				fmt.Errorf("failed to get previews: %w", err),
+			)
 
-func encodeGetSongsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	res := response.(GetSongsResponse)
-	httptransport.SetContentType("application/json")(ctx, w)
-	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {
-		return fmt.Errorf("failed to encode get songs response: %w", err)
+			return
+		}
+
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, s)
 	}
-
-	return nil
-}
-
-func decodeGetPreviewsHTTPRequest(_ context.Context, _ *http.Request) (interface{}, error) {
-	return GetPreviewsRequest{}, nil
-}
-
-func encodeGetPreviewsHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	res := response.(GetPreviewsResponse)
-	httptransport.SetContentType("application/json")(ctx, w)
-	if err := httptransport.EncodeJSONResponse(ctx, w, res.Results); err != nil {
-		return fmt.Errorf("failed to encode get previews response: %w", err)
-	}
-
-	return nil
 }

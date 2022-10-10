@@ -12,7 +12,7 @@ var (
 		},
 		Scrapers: ScraperConfigs{
 			Grob: ScraperConfig{
-				BaseURL: "http://www.gr-oborona.ru/",
+				BaseURL: "https://www.gr-oborona.ru/",
 			},
 		},
 	}

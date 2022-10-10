@@ -85,7 +85,6 @@ func (p *GrobParser) ParseSong(in string) (*song.Song, error) {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
 
-	id := document.Url.Query().Get("id")
 	title := document.Find("h2").Text()
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
 	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
@@ -101,7 +100,6 @@ func (p *GrobParser) ParseSong(in string) (*song.Song, error) {
 
 	return &song.Song{
 		Metadata: song.Metadata{
-			ID:     id,
 			Title:  title,
 			Author: author,
 			Album:  album,

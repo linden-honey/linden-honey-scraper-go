@@ -15,7 +15,6 @@ import (
 	"github.com/linden-honey/linden-honey-sdk-go/health"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/docs"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/aggregator"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
@@ -86,15 +85,6 @@ func main() {
 		)(scrSvc)
 	}
 
-	var docsSvc docs.Service
-	{
-		var err error
-		docsSvc, err = docs.NewProvider("./api/openapi.json")
-		if err != nil {
-			fatal(logger, fmt.Errorf("failed to initialize docs provider: %w", err))
-		}
-	}
-
 	_ = logger.Log("msg", "initialize endpoints")
 
 	var scraperEndpoints scraper.Endpoints
@@ -103,13 +93,6 @@ func main() {
 			GetSong:     scraper.MakeGetSongEndpoint(scrSvc),
 			GetSongs:    scraper.MakeGetSongsEndpoint(scrSvc),
 			GetPreviews: scraper.MakeGetPreviewsEndpoint(scrSvc),
-		}
-	}
-
-	var docsEndpoints docs.Endpoints
-	{
-		docsEndpoints = docs.Endpoints{
-			GetSpec: docs.MakeGetSpecEndpoint(docsSvc),
 		}
 	}
 
@@ -140,13 +123,6 @@ func main() {
 			scraper.NewHTTPHandler(
 				"/api/songs",
 				scraperEndpoints,
-				logger,
-			),
-		)
-		router.PathPrefix("/").Handler(
-			docs.NewHTTPHandler(
-				"/",
-				docsEndpoints,
 				logger,
 			),
 		)

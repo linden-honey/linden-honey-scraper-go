@@ -13,6 +13,5 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/linden-honey/linden-honey-api-go v0.0.3
 	github.com/linden-honey/linden-honey-sdk-go v0.0.8
-	github.com/swaggo/http-swagger v1.3.3
 	golang.org/x/text v0.3.7
 )

@@ -16,8 +16,8 @@ type Fetcher interface {
 
 // Parser represents the content parser interface
 type Parser interface {
-	ParseSong(in string) (*song.Song, error)
-	ParsePreviews(in string) ([]song.Metadata, error)
+	ParseSong(input string) (*song.Song, error)
+	ParsePreviews(input string) ([]song.Metadata, error)
 }
 
 // Scraper represents an implementation of the scraper

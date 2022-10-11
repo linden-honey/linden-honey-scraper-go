@@ -91,8 +91,8 @@ func main() {
 		r := chi.NewRouter()
 		r.Use(middleware.Recoverer)
 
-		if cfg.Health.Enabled {
-			r.Handle(cfg.Health.Path, health.NewHTTPHandler(health.NewNopService()))
+		if cfg.Server.Health.Enabled {
+			r.Handle(cfg.Server.Health.Path, health.NewHTTPHandler(health.NewNopService()))
 		}
 
 		r.Route("/api", func(r chi.Router) {

@@ -22,11 +22,11 @@ github.com/gojek/valkyrie v0.0.0-20180215180059-6aee720afcdf h1:5xRGbUdOmZKoDXkG
 github.com/gojek/valkyrie v0.0.0-20180215180059-6aee720afcdf/go.mod h1:QzhUKaYKJmcbTnCYCAVQrroCOY7vOOI8cSQ4NbuhYf0=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
-github.com/linden-honey/linden-honey-api-go v0.0.3 h1:n+RcdCcB5FSoon5oEcXQvI+EqohEajWm1V51OtLpJq4=
-github.com/linden-honey/linden-honey-api-go v0.0.3/go.mod h1:+EiKA+BKlKZCNWjN0j+ab2QhgROy3L//HQJ8knu+pmc=
+github.com/linden-honey/linden-honey-api-go v0.0.4 h1:Rx81R8bMIdSkw4TqmtLUVLPUjd3c0NI7Z/IeKvkA0hs=
+github.com/linden-honey/linden-honey-api-go v0.0.4/go.mod h1:+EiKA+BKlKZCNWjN0j+ab2QhgROy3L//HQJ8knu+pmc=
 github.com/linden-honey/linden-honey-sdk-go v0.0.7/go.mod h1:Of0QNaySkZignSgTMuIgKAM3OjffUsyoL8oekHKAw10=
-github.com/linden-honey/linden-honey-sdk-go v0.0.8 h1:juYlWI1kgo6O+OQ7ebAqlqcXz4B9I61usvrHAAO6W+4=
-github.com/linden-honey/linden-honey-sdk-go v0.0.8/go.mod h1:Of0QNaySkZignSgTMuIgKAM3OjffUsyoL8oekHKAw10=
+github.com/linden-honey/linden-honey-sdk-go v0.0.9 h1:8HcsE6cHi7nVR/bgnW2ippDamvpO0kPCCQRVbHXQALY=
+github.com/linden-honey/linden-honey-sdk-go v0.0.9/go.mod h1:Of0QNaySkZignSgTMuIgKAM3OjffUsyoL8oekHKAw10=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

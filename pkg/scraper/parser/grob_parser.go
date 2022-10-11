@@ -19,7 +19,6 @@ func NewGrobParser() *GrobParser {
 	return &GrobParser{}
 }
 
-// parseHTML parse html and returns a pointer to the Document instance
 func (p *GrobParser) parseHTML(in string) (*goquery.Document, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(in))
 	if err != nil {
@@ -29,8 +28,7 @@ func (p *GrobParser) parseHTML(in string) (*goquery.Document, error) {
 	return document, err
 }
 
-// ParseQuote parses html and returns a pointer to the Quote instance
-func (p *GrobParser) ParseQuote(in string) (*song.Quote, error) {
+func (p *GrobParser) parseQuote(in string) (*song.Quote, error) {
 	document, err := p.parseHTML(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
@@ -45,11 +43,10 @@ func (p *GrobParser) ParseQuote(in string) (*song.Quote, error) {
 	return quote, nil
 }
 
-// ParseVerse parses html and returns a pointer to the Verse instance
-func (p *GrobParser) ParseVerse(in string) (*song.Verse, error) {
+func (p *GrobParser) parseVerse(in string) (*song.Verse, error) {
 	quotes := make([]song.Quote, 0)
 	for _, text := range strings.Split(in, "<br/>") {
-		quote, err := p.ParseQuote(text)
+		quote, err := p.parseQuote(text)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse a quote: %w", err)
 		}
@@ -61,13 +58,12 @@ func (p *GrobParser) ParseVerse(in string) (*song.Verse, error) {
 	}, nil
 }
 
-// parseVerses parses html and returns a slice of pointers of the Verse instances
-func (p *GrobParser) parseVerses(in string) ([]song.Verse, error) {
-	verses := make([]song.Verse, 0)
+func (p *GrobParser) parseLyrics(in string) (song.Lyrics, error) {
+	verses := make(song.Lyrics, 0)
 	// hint: match nbsp; character (\xA0) that not included in \s group
 	re := regexp.MustCompile(`(?:<br/>[\s\xA0]*){2,}`)
 	for _, verseHTML := range re.Split(in, -1) {
-		verse, err := p.ParseVerse(verseHTML)
+		verse, err := p.parseVerse(verseHTML)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse a verse: %w", err)
 		}
@@ -88,23 +84,31 @@ func (p *GrobParser) ParseSong(in string) (*song.Song, error) {
 	title := document.Find("h2").Text()
 	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
 	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
-	versesHTML, err := document.Find("p:last-of-type").Html()
+	lyricsHTML, err := document.Find("p:last-of-type").Html()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get lyrics html: %w", err)
 	}
 
-	verses, err := p.parseVerses(versesHTML)
+	lyrics, err := p.parseLyrics(lyricsHTML)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse lyrics: %w", err)
 	}
 
 	return &song.Song{
 		Metadata: song.Metadata{
-			Title:  title,
-			Author: author,
-			Album:  album,
+			Title: title,
+			Tags: song.Tags{
+				{
+					Name:  "author",
+					Value: author,
+				},
+				{
+					Name:  "album",
+					Value: album,
+				},
+			},
 		},
-		Verses: verses,
+		Lyrics: lyrics,
 	}, nil
 }
 

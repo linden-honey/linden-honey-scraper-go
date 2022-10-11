@@ -28,6 +28,7 @@ func main() {
 	)
 	{
 		ctx = context.Background()
+		ctx, cancel = context.WithCancel(ctx)
 		ctx, cancel = context.WithTimeout(ctx, 3*time.Second)
 		defer func() {
 			cancel()

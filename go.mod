@@ -10,7 +10,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-kit/log v0.2.1
 	github.com/gojek/heimdall/v7 v7.0.2
-	github.com/linden-honey/linden-honey-api-go v0.0.3
-	github.com/linden-honey/linden-honey-sdk-go v0.0.8
+	github.com/linden-honey/linden-honey-api-go v0.0.4
+	github.com/linden-honey/linden-honey-sdk-go v0.0.9
 	golang.org/x/text v0.3.7
 )

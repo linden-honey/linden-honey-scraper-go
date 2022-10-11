@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,10 +30,7 @@ func main() {
 	{
 		ctx = context.Background()
 		ctx, cancel = context.WithCancel(ctx)
-		ctx, cancel = context.WithTimeout(ctx, 3*time.Second)
-		defer func() {
-			cancel()
-		}()
+		defer cancel()
 	}
 
 	var logger log.Logger
@@ -105,11 +103,17 @@ func main() {
 		httpServer = &http.Server{
 			Addr:    addr,
 			Handler: r,
+			BaseContext: func(_ net.Listener) context.Context {
+				return ctx
+			},
 		}
 
 		defer func() {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
+
 			if err := httpServer.Shutdown(ctx); err != nil {
-				fatal(logger, fmt.Errorf("failed to shutdown http server: %w", err))
+				warn(logger, fmt.Errorf("failed to shutdown http server: %w", err))
 			}
 		}()
 	}
@@ -118,7 +122,7 @@ func main() {
 
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil {
-			errc <- err
+			errc <- fmt.Errorf("failed to listen and serve http server: %w", err)
 		}
 	}()
 

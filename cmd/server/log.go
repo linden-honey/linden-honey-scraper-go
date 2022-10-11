@@ -16,6 +16,10 @@ func newLogger() (logger log.Logger) {
 	return logger
 }
 
+func warn(logger log.Logger, err error) {
+	_ = level.Warn(logger).Log("err", err)
+}
+
 func fatal(logger log.Logger, err error) {
 	_ = level.Error(logger).Log("err", err)
 	os.Exit(1)

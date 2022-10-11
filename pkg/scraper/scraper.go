@@ -89,7 +89,7 @@ func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 
 	if scr.validation {
 		if err := s.Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate a song %v: %w", s, err)
+			return nil, fmt.Errorf("failed to validate a song: %w", err)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 		go func(id string) {
 			s, err := scr.GetSong(ctx, id)
 			if err != nil {
-				errc <- fmt.Errorf("failed to get a song with id %s: %w", id, err)
+				errc <- fmt.Errorf("failed to get a song with id=%s: %w", id, err)
 				return
 			}
 
@@ -153,7 +153,7 @@ func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 	for _, p := range previews {
 		if scr.validation {
 			if err := p.Validate(); err != nil {
-				return nil, fmt.Errorf("failed to validate a preview %v: %w", p, err)
+				return nil, fmt.Errorf("failed to validate a preview with id=%s : %w", p.ID, err)
 			}
 		}
 	}

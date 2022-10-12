@@ -27,8 +27,7 @@ func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
 	}
 
 	title := document.Find("h2").Text()
-	author := substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": ")
-	album := substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": ")
+	tags := p.parseTags(document)
 	lyricsHTML, err := document.Find("p:last-of-type").Html()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get lyrics html: %w", err)
@@ -42,16 +41,7 @@ func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
 	return &song.Song{
 		Metadata: song.Metadata{
 			Title: title,
-			Tags: song.Tags{
-				{
-					Name:  "author",
-					Value: author,
-				},
-				{
-					Name:  "album",
-					Value: album,
-				},
-			},
+			Tags:  tags,
 		},
 		Lyrics: lyrics,
 	}, nil
@@ -82,6 +72,28 @@ func (p *GrobParser) ParsePreviews(input string) ([]song.Metadata, error) {
 	})
 
 	return previews, nil
+}
+
+func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
+	tags := make(song.Tags, 0)
+
+	author := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": "))
+	if author != "" {
+		tags = append(tags, song.Tag{
+			Name:  "author",
+			Value: author,
+		})
+	}
+
+	album := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": "))
+	if album != "" {
+		tags = append(tags, song.Tag{
+			Name:  "album",
+			Value: album,
+		})
+	}
+
+	return tags
 }
 
 func (p *GrobParser) parseLyrics(input string) (song.Lyrics, error) {

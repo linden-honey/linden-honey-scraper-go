@@ -7,18 +7,14 @@ RUN go mod download
 
 COPY cmd ./cmd
 COPY pkg ./pkg
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go install -v -ldflags="-w -s" ./cmd/server
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go install -v -ldflags="-w -s" ./cmd/...
 
 FROM alpine:3.13
 
-ARG WORK_DIR=/app
-WORKDIR $WORK_DIR
+COPY --from=builder /go/bin/server /bin/server
 
 ENV SERVER_HOST=0.0.0.0 \
     SERVER_PORT=80
-
-COPY --from=builder /go/bin/server /bin/server
-COPY api/ ./api
-
 EXPOSE $SERVER_PORT
+
 ENTRYPOINT [ "/bin/server" ]

@@ -35,8 +35,8 @@ type ScraperConfig struct {
 	BaseURL string `env:"SCRAPER_BASE_URL"`
 }
 
-// NewConfig returns a pointer to the new instance of Config or an error
-func NewConfig() (*Config, error) {
+// New returns a pointer to the new instance of Config or an error
+func New() (*Config, error) {
 	cfg := DefaultConfig
 	if err := env.Parse(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse env: %w", err)

@@ -13,8 +13,8 @@ FROM alpine:3.13
 
 COPY --from=builder /go/bin/server /bin/server
 
-ENV SERVER_HOST=0.0.0.0 \
-    SERVER_PORT=80
+ENV SERVER_HOST="0.0.0.0" \
+    SERVER_PORT="80"
 EXPOSE $SERVER_PORT
 
 ENTRYPOINT [ "/bin/server" ]

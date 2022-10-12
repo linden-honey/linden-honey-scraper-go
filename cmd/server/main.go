@@ -45,7 +45,7 @@ func main() {
 	var cfg *config.Config
 	{
 		var err error
-		cfg, err = config.NewConfig()
+		cfg, err = config.New()
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize a config: %w", err))
 		}

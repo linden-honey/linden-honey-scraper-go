@@ -128,7 +128,7 @@ func main() {
 
 	go func() {
 		sigc := make(chan os.Signal, 1)
-		signal.Notify(sigc, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
 		errc <- fmt.Errorf("%s", <-sigc)
 	}()
 

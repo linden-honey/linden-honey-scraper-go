@@ -26,66 +26,45 @@ type loggingMiddleware struct {
 
 // GetSong proxies call to service with logging
 func (mw *loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Song, err error) {
-	_ = level.Debug(mw.logger).Log(
-		"msg", "getting a song",
-		"song_id", id,
-	)
+	_ = level.Debug(mw.logger).Log("msg", "getting a song", "song_id", id)
+
 	defer func() {
 		if err == nil {
-			_ = level.Debug(mw.logger).Log(
-				"msg", "successfully got a song",
-				"song_id", id,
-				"song_title", s.Title,
-			)
+			_ = level.Debug(mw.logger).Log("msg", "successfully got a song", "song_id", id, "song_title", s.Title)
 		} else {
-			_ = level.Debug(mw.logger).Log(
-				"msg", "failed to get a song",
-				"song_id", id,
-				"err", err,
-			)
+			_ = level.Error(mw.logger).Log("msg", "failed to get a song", "song_id", id, "err", err)
 		}
 	}()
+
 	return mw.next.GetSong(ctx, id)
 }
 
 // GetSongs proxies call to service with logging
 func (mw *loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err error) {
-	_ = level.Debug(mw.logger).Log(
-		"msg", "getting songs",
-	)
+	_ = level.Debug(mw.logger).Log("msg", "getting songs")
+
 	defer func() {
 		if err == nil {
-			_ = level.Debug(mw.logger).Log(
-				"msg", "successfully got songs",
-				"count", len(ss),
-			)
+			_ = level.Debug(mw.logger).Log("msg", "successfully got songs", "count", len(ss))
 		} else {
-			_ = level.Debug(mw.logger).Log(
-				"msg", "failed to get songs",
-				"err", err,
-			)
+			_ = level.Error(mw.logger).Log("msg", "failed to get songs", "err", err)
 		}
 	}()
+
 	return mw.next.GetSongs(ctx)
 }
 
 // GetPreviews proxies call to service with logging
 func (mw *loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Metadata, err error) {
-	_ = level.Debug(mw.logger).Log(
-		"msg", "getting previews",
-	)
+	_ = level.Debug(mw.logger).Log("msg", "getting previews")
+
 	defer func() {
 		if err == nil {
-			_ = level.Debug(mw.logger).Log(
-				"msg", "successfully got previews",
-				"count", len(pp),
-			)
+			_ = level.Debug(mw.logger).Log("msg", "successfully got previews", "count", len(pp))
 		} else {
-			_ = level.Debug(mw.logger).Log(
-				"msg", "failed to get previews",
-				"err", err,
-			)
+			_ = level.Error(mw.logger).Log("msg", "failed to get previews", "err", err)
 		}
 	}()
+
 	return mw.next.GetPreviews(ctx)
 }

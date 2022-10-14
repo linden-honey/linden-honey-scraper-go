@@ -1,8 +1,8 @@
 module github.com/linden-honey/linden-honey-scraper-go
 
-go 1.16
+go 1.19
 
-// +heroku goVersion go1.16
+// +heroku goVersion go1.19
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
@@ -12,4 +12,10 @@ require (
 	github.com/linden-honey/linden-honey-api-go v0.0.5
 	github.com/linden-honey/linden-honey-sdk-go v0.0.12
 	golang.org/x/text v0.3.7
+)
+
+require (
+	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/go-logfmt/logfmt v0.5.1 // indirect
+	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 // indirect
 )

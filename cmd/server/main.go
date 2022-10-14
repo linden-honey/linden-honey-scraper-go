@@ -11,10 +11,11 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-kit/log"
 
 	"github.com/linden-honey/linden-honey-sdk-go/health"
+	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
@@ -63,12 +64,8 @@ func main() {
 				fatal(logger, fmt.Errorf("failed to initialize grob scraper: %w", err))
 			}
 
-			grobScrSvc = scraper.LoggingMiddleware(
-				log.With(
-					logger,
-					"component", "scraper",
-					"scraper_id", "grob",
-				),
+			grobScrSvc = middleware.Compose(
+				scraper.LoggingMiddleware(log.With(logger, "component", "scraper", "scraper_id", "grob")),
 			)(grobScrSvc)
 		}
 
@@ -79,8 +76,8 @@ func main() {
 			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
 		}
 
-		scrSvc = scraper.LoggingMiddleware(
-			log.With(logger, "component", "aggregator"),
+		scrSvc = middleware.Compose(
+			scraper.LoggingMiddleware(log.With(logger, "component", "aggregator")),
 		)(scrSvc)
 	}
 
@@ -89,7 +86,7 @@ func main() {
 	var httpServer *http.Server
 	{
 		r := chi.NewRouter()
-		r.Use(middleware.Recoverer)
+		r.Use(chimiddleware.Recoverer)
 
 		if cfg.Server.Health.Enabled {
 			r.Handle(cfg.Server.Health.Path, health.NewHTTPHandler(health.NewNopService()))

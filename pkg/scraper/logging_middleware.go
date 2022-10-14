@@ -7,10 +7,11 @@ import (
 	"github.com/go-kit/log/level"
 
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
+	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 )
 
 // LoggingMiddleware returns the logging middleware for the scraper service
-func LoggingMiddleware(logger log.Logger) Middleware {
+func LoggingMiddleware(logger log.Logger) middleware.Middleware[Service] {
 	return func(next Service) Service {
 		return &loggingMiddleware{
 			logger: logger,

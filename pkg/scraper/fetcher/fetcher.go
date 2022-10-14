@@ -8,23 +8,27 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/gojek/heimdall/v7"
-	"github.com/gojek/heimdall/v7/httpclient"
 	"golang.org/x/text/encoding/charmap"
-
-	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
-
-type httpClient interface {
-	Do(*http.Request) (*http.Response, error)
-}
 
 // Fetcher represents an implementation of the fetcher
 type Fetcher struct {
-	client httpClient
-
 	baseURL  *url.URL
 	encoding *charmap.Charmap
+	client   httpClient
+	retry    *RetryConfig
+}
+
+// RetryConfig represents the retry configuration of the fetcher
+type RetryConfig struct {
+	Attempts   int
+	MinTimeout time.Duration
+	MaxTimeout time.Duration
+	Factor     time.Duration
+}
+
+type httpClient interface {
+	Do(*http.Request) (*http.Response, error)
 }
 
 // Option set optional parameters for the fetcher
@@ -37,9 +41,9 @@ func NewFetcher(
 	opts ...Option,
 ) (*Fetcher, error) {
 	f := &Fetcher{
-		client:   httpclient.NewClient(),
 		baseURL:  baseURL,
 		encoding: encoding,
+		client:   new(http.Client),
 	}
 
 	for _, opt := range opts {
@@ -53,60 +57,58 @@ func NewFetcher(
 	return f, nil
 }
 
-// RetryConfig represents the retry configuration of the fetcher
-type RetryConfig struct {
-	Retries           int
-	Factor            float64
-	MinTimeout        time.Duration
-	MaxTimeout        time.Duration
-	MaxJitterInterval time.Duration
-}
-
 // WithRetry sets the retry configuration of the fetcher
-func WithRetry(cfg RetryConfig) Option {
+func WithRetry(cfg *RetryConfig) Option {
 	return func(f *Fetcher) {
-		// TODO: rewrite with simple attempts count and time.Sleep retry
-		f.client = httpclient.NewClient(
-			httpclient.WithRetryCount(cfg.Retries),
-			httpclient.WithRetrier(
-				heimdall.NewRetrier(
-					heimdall.NewExponentialBackoff(
-						cfg.MinTimeout,
-						cfg.MaxTimeout,
-						cfg.Factor,
-						cfg.MaxJitterInterval,
-					),
-				),
-			),
-		)
+		f.retry = cfg
 	}
-}
-
-// Validate validates fetcher struct
-func (f *Fetcher) Validate() error {
-	if f.client == nil {
-		return sdkerrors.NewRequiredValueError("client")
-	}
-
-	if f.baseURL == nil {
-		return sdkerrors.NewRequiredValueError("baseURL")
-	}
-
-	if f.encoding == nil {
-		return sdkerrors.NewRequiredValueError("encoding")
-	}
-
-	return nil
 }
 
 // Fetch send GET request under relative path and returns content as a string
 func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
-	fetchURL, err := f.baseURL.Parse(path)
+	u, err := f.baseURL.Parse(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse an URL: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fetchURL.String(), nil)
+	if f.retry != nil {
+		return f.fetchWithRetry(ctx, u)
+	}
+
+	return f.fetch(ctx, u)
+}
+
+func (f *Fetcher) fetchWithRetry(ctx context.Context, u *url.URL) (string, error) {
+	attempt := 0
+	for {
+		res, err := f.fetch(ctx, u)
+		if err != nil {
+			if attempt == f.retry.Attempts-1 {
+				return "", fmt.Errorf("failed to fetch after attempts=%d: %w", attempt+1, err)
+			}
+
+			delay := f.retry.Factor * time.Duration(attempt)
+			if delay < f.retry.MinTimeout {
+				delay = f.retry.MinTimeout
+			} else if delay > f.retry.MinTimeout {
+				delay = f.retry.MinTimeout
+			}
+
+			select {
+			case <-time.After(delay):
+				attempt++
+				continue
+			case <-ctx.Done():
+				return "", fmt.Errorf("failed to retry fetch, attempt=%ds: %w", attempt+1, ctx.Err())
+			}
+		}
+
+		return res, nil
+	}
+}
+
+func (f *Fetcher) fetch(ctx context.Context, u *url.URL) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create a request: %w", err)
 	}

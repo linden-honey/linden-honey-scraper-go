@@ -22,12 +22,11 @@ func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, e
 	f, err := fetcher.NewFetcher(
 		baseURL,
 		charmap.Windows1251,
-		fetcher.WithRetry(fetcher.RetryConfig{
-			Retries:           5,
-			Factor:            3,
-			MinTimeout:        time.Second * 1,
-			MaxTimeout:        time.Second * 6,
-			MaxJitterInterval: time.Second,
+		fetcher.WithRetry(&fetcher.RetryConfig{
+			Attempts:   5,
+			MinTimeout: 1 * time.Second,
+			MaxTimeout: 10 * time.Second,
+			Factor:     2 * time.Second,
 		}),
 	)
 	if err != nil {

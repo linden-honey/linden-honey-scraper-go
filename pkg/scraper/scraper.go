@@ -6,8 +6,14 @@ import (
 	"sort"
 
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
-	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
+
+// Scraper represents an implementation of the scraper
+type Scraper struct {
+	fetcher    Fetcher
+	parser     Parser
+	validation bool
+}
 
 // Fetcher represents the content fetcher interface
 type Fetcher interface {
@@ -19,17 +25,6 @@ type Parser interface {
 	ParseSong(input string) (*song.Song, error)
 	ParsePreviews(input string) ([]song.Metadata, error)
 }
-
-// Scraper represents an implementation of the scraper
-type Scraper struct {
-	fetcher Fetcher
-	parser  Parser
-
-	validation bool
-}
-
-// Option set optional parameters for the scraper
-type Option func(*Scraper)
 
 // NewScraper returns a pointer to a new instance of the scraper or an error
 func NewScraper(
@@ -53,24 +48,14 @@ func NewScraper(
 	return scr, nil
 }
 
+// Option set optional parameters for the scraper
+type Option func(*Scraper)
+
 // WithValidation enables or disables validation
 func WithValidation(validation bool) Option {
 	return func(scr *Scraper) {
 		scr.validation = validation
 	}
-}
-
-// Validate validates scraper struct
-func (scr *Scraper) Validate() error {
-	if scr.fetcher == nil {
-		return sdkerrors.NewRequiredValueError("fetcher")
-	}
-
-	if scr.parser == nil {
-		return sdkerrors.NewRequiredValueError("parser")
-	}
-
-	return nil
 }
 
 // GetSong scrapes a song from some source and returns it or an error

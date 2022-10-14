@@ -57,6 +57,13 @@ func NewFetcher(
 	return f, nil
 }
 
+// WithClient sets the http client for the fetcher
+func WithClient(client httpClient) Option {
+	return func(f *Fetcher) {
+		f.client = client
+	}
+}
+
 // WithRetry sets the retry configuration of the fetcher
 func WithRetry(cfg *RetryConfig) Option {
 	return func(f *Fetcher) {

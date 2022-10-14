@@ -13,8 +13,8 @@ github.com/go-logfmt/logfmt v0.5.1/go.mod h1:WYhtIu8zTZfxdn5+rREduYbwxfcBr/Vr6KE
 github.com/linden-honey/linden-honey-api-go v0.0.5 h1:0tXtOZEM3/gaYqH4dy6kPuSLsBVQf/kPvOteOvaXHm0=
 github.com/linden-honey/linden-honey-api-go v0.0.5/go.mod h1:+EiKA+BKlKZCNWjN0j+ab2QhgROy3L//HQJ8knu+pmc=
 github.com/linden-honey/linden-honey-sdk-go v0.0.7/go.mod h1:Of0QNaySkZignSgTMuIgKAM3OjffUsyoL8oekHKAw10=
-github.com/linden-honey/linden-honey-sdk-go v0.0.11 h1:PXRtrJnFjW8co/Zg/3eDgVWem1MmSMEkF1XQZP5DhEc=
-github.com/linden-honey/linden-honey-sdk-go v0.0.11/go.mod h1:Of0QNaySkZignSgTMuIgKAM3OjffUsyoL8oekHKAw10=
+github.com/linden-honey/linden-honey-sdk-go v0.0.12 h1:veCJfcJ6VX5IFeDl82mnzf6fFyz3OjD7U6mrpc3Vdzs=
+github.com/linden-honey/linden-honey-sdk-go v0.0.12/go.mod h1:Of0QNaySkZignSgTMuIgKAM3OjffUsyoL8oekHKAw10=
 golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 h1:/6y1LfuqNuQdHAm0jjtPtgRcxIxjVZgm5OTu8/QhZvk=
 golang.org/x/net v0.0.0-20210916014120-12bc252f5db8/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

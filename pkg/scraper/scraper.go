@@ -83,14 +83,14 @@ func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 
 // GetSongs scrapes songs from some source and returns them or an error
 func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
-	previews, err := scr.GetPreviews(ctx)
+	ps, err := scr.GetPreviews(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get previews: %w", err)
 	}
 
-	songc := make(chan song.Song, len(previews))
+	sc := make(chan song.Song, len(ps))
 	errc := make(chan error, 1)
-	for _, p := range previews {
+	for _, p := range ps {
 		go func(id string) {
 			s, err := scr.GetSong(ctx, id)
 			if err != nil {
@@ -98,17 +98,17 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 				return
 			}
 
-			songc <- *s
+			sc <- *s
 		}(p.ID)
 	}
 
-	songs := make([]song.Song, 0, len(previews))
+	ss := make([]song.Song, 0, len(ps))
 loop:
 	for {
 		select {
-		case s := <-songc:
-			songs = append(songs, s)
-			if len(songs) == len(previews) {
+		case s := <-sc:
+			ss = append(ss, s)
+			if len(ss) == len(ps) {
 				break loop
 			}
 		case err := <-errc:
@@ -116,11 +116,11 @@ loop:
 		}
 	}
 
-	sort.SliceStable(songs, func(i, j int) bool {
-		return songs[i].Title < songs[j].Title
+	sort.SliceStable(ss, func(i, j int) bool {
+		return ss[i].Title < ss[j].Title
 	})
 
-	return songs, nil
+	return ss, nil
 }
 
 // GetPreviews scrapes previews from some source and returns them or an error
@@ -130,12 +130,12 @@ func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	previews, err := scr.parser.ParsePreviews(data)
+	ps, err := scr.parser.ParsePreviews(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse previews: %w", err)
 	}
 
-	for _, p := range previews {
+	for _, p := range ps {
 		if scr.validation {
 			if err := p.Validate(); err != nil {
 				return nil, fmt.Errorf("failed to validate a preview with id=%s : %w", p.ID, err)
@@ -143,9 +143,9 @@ func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 		}
 	}
 
-	sort.SliceStable(previews, func(i, j int) bool {
-		return previews[i].Title < previews[j].Title
+	sort.SliceStable(ps, func(i, j int) bool {
+		return ps[i].Title < ps[j].Title
 	})
 
-	return previews, nil
+	return ps, nil
 }

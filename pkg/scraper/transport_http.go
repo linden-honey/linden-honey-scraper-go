@@ -23,7 +23,7 @@ func NewHTTPHandler(svc Service) http.Handler {
 func makeGetSongHTTPHandlerFunc(svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		song, err := svc.GetSong(r.Context(), id)
+		s, err := svc.GetSong(r.Context(), id)
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
@@ -34,13 +34,13 @@ func makeGetSongHTTPHandlerFunc(svc Service) http.HandlerFunc {
 			return
 		}
 
-		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, song)
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, s)
 	}
 }
 
 func makeGetSongsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		songs, err := svc.GetSongs(r.Context())
+		ss, err := svc.GetSongs(r.Context())
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
@@ -51,13 +51,13 @@ func makeGetSongsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 			return
 		}
 
-		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, songs)
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, ss)
 	}
 }
 
 func makeGetPreviewsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		previews, err := svc.GetPreviews(r.Context())
+		ps, err := svc.GetPreviews(r.Context())
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
@@ -68,6 +68,6 @@ func makeGetPreviewsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 			return
 		}
 
-		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, previews)
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, ps)
 	}
 }

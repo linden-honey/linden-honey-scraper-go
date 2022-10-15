@@ -23,7 +23,7 @@ func NewHTTPHandler(svc Service) http.Handler {
 func makeGetSongHTTPHandlerFunc(svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		s, err := svc.GetSong(r.Context(), id)
+		song, err := svc.GetSong(r.Context(), id)
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
@@ -34,38 +34,13 @@ func makeGetSongHTTPHandlerFunc(svc Service) http.HandlerFunc {
 			return
 		}
 
-		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, s)
-	}
-}
-
-func QueriesMiddleware(pairs ...string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			length := len(pairs)
-			if length%2 != 0 {
-				return
-			}
-
-			for i := 0; i < length; i += 2 {
-				for key, values := range r.URL.Query() {
-					if key == pairs[i] {
-						for _, v := range values {
-							if v == pairs[i+1] {
-								next.ServeHTTP(w, r)
-
-								return
-							}
-						}
-					}
-				}
-			}
-		})
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, song)
 	}
 }
 
 func makeGetSongsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s, err := svc.GetSongs(r.Context())
+		songs, err := svc.GetSongs(r.Context())
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
@@ -76,13 +51,13 @@ func makeGetSongsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 			return
 		}
 
-		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, s)
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, songs)
 	}
 }
 
 func makeGetPreviewsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s, err := svc.GetPreviews(r.Context())
+		previews, err := svc.GetPreviews(r.Context())
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
@@ -93,6 +68,6 @@ func makeGetPreviewsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 			return
 		}
 
-		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, s)
+		_ = sdkhttp.EncodeJSONResponse(w, http.StatusOK, previews)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"time"
@@ -21,10 +22,11 @@ type Fetcher struct {
 
 // RetryConfig represents the retry configuration of the fetcher
 type RetryConfig struct {
-	Attempts   int
-	MinTimeout time.Duration
-	MaxTimeout time.Duration
-	Factor     time.Duration
+	Attempts          int
+	MinInterval       time.Duration
+	MaxInterval       time.Duration
+	Factor            time.Duration
+	MaxJitterInterval time.Duration
 }
 
 type httpClient interface {
@@ -94,11 +96,15 @@ func (f *Fetcher) fetchWithRetry(ctx context.Context, u *url.URL) (string, error
 				return "", fmt.Errorf("failed to fetch after attempts=%d: %w", attempt+1, err)
 			}
 
-			delay := f.retry.Factor * time.Duration(attempt)
-			if delay < f.retry.MinTimeout {
-				delay = f.retry.MinTimeout
-			} else if delay > f.retry.MinTimeout {
-				delay = f.retry.MinTimeout
+			rand.Seed(time.Now().UTC().UnixNano())
+			delay := f.retry.Factor * time.Duration(attempt+1)
+			jitter := time.Duration(rand.Float64() * float64(f.retry.Factor))
+			delay = delay + jitter
+			if delay < f.retry.MinInterval {
+				delay = f.retry.MinInterval
+			}
+			if delay > f.retry.MaxInterval {
+				delay = f.retry.MaxInterval
 			}
 
 			select {

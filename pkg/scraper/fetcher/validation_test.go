@@ -28,10 +28,10 @@ func TestFetcher_Validate(t *testing.T) {
 				encoding: charmap.Windows1251,
 				client:   &http.Client{},
 				retry: &RetryConfig{
-					Attempts:   3,
-					MinTimeout: 1 * time.Second,
-					MaxTimeout: 6 * time.Second,
-					Factor:     3 * time.Second,
+					Attempts:    3,
+					MinInterval: 1 * time.Second,
+					MaxInterval: 6 * time.Second,
+					Factor:      3 * time.Second,
 				},
 			},
 		},
@@ -42,10 +42,10 @@ func TestFetcher_Validate(t *testing.T) {
 				encoding: charmap.Windows1251,
 				client:   &http.Client{},
 				retry: &RetryConfig{
-					Attempts:   3,
-					MinTimeout: 1 * time.Second,
-					MaxTimeout: 6 * time.Second,
-					Factor:     3 * time.Second,
+					Attempts:    3,
+					MinInterval: 1 * time.Second,
+					MaxInterval: 6 * time.Second,
+					Factor:      3 * time.Second,
 				},
 			},
 			wantErr: true,
@@ -57,10 +57,10 @@ func TestFetcher_Validate(t *testing.T) {
 				encoding: nil,
 				client:   &http.Client{},
 				retry: &RetryConfig{
-					Attempts:   3,
-					MinTimeout: 1 * time.Second,
-					MaxTimeout: 6 * time.Second,
-					Factor:     3 * time.Second,
+					Attempts:    3,
+					MinInterval: 1 * time.Second,
+					MaxInterval: 6 * time.Second,
+					Factor:      3 * time.Second,
 				},
 			},
 			wantErr: true,
@@ -72,10 +72,10 @@ func TestFetcher_Validate(t *testing.T) {
 				encoding: charmap.Windows1251,
 				client:   nil,
 				retry: &RetryConfig{
-					Attempts:   3,
-					MinTimeout: 1 * time.Second,
-					MaxTimeout: 6 * time.Second,
-					Factor:     3 * time.Second,
+					Attempts:    3,
+					MinInterval: 1 * time.Second,
+					MaxInterval: 6 * time.Second,
+					Factor:      3 * time.Second,
 				},
 			},
 			wantErr: true,
@@ -123,12 +123,42 @@ func TestRetryConfig_Validate(t *testing.T) {
 			fields: fields{
 				Attempts:   3,
 				MinTimeout: 1 * time.Second,
-				MaxTimeout: 6 * time.Second,
+				MaxTimeout: 10 * time.Second,
 				Factor:     3 * time.Second,
 			},
 		},
 		{
 			name: "err  attempts is non-positive number",
+			fields: fields{
+				Attempts:   0,
+				MinTimeout: 1 * time.Second,
+				MaxTimeout: 6 * time.Second,
+				Factor:     3 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  min interval is non-positive number",
+			fields: fields{
+				Attempts:   3,
+				MinTimeout: 0,
+				MaxTimeout: 6 * time.Second,
+				Factor:     3 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  max interval is non-positive number",
+			fields: fields{
+				Attempts:   3,
+				MinTimeout: 1 * time.Second,
+				MaxTimeout: 0,
+				Factor:     3 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  min interval is greater than max interval",
 			fields: fields{
 				Attempts:   0,
 				MinTimeout: 1 * time.Second,
@@ -151,10 +181,10 @@ func TestRetryConfig_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := RetryConfig{
-				Attempts:   tt.fields.Attempts,
-				MinTimeout: tt.fields.MinTimeout,
-				MaxTimeout: tt.fields.MaxTimeout,
-				Factor:     tt.fields.Factor,
+				Attempts:    tt.fields.Attempts,
+				MinInterval: tt.fields.MinTimeout,
+				MaxInterval: tt.fields.MaxTimeout,
+				Factor:      tt.fields.Factor,
 			}
 			if err := cfg.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("RetryConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)

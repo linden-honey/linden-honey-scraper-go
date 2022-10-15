@@ -1,6 +1,8 @@
 package fetcher
 
 import (
+	"errors"
+
 	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
 
@@ -30,6 +32,18 @@ func (f Fetcher) Validate() error {
 func (cfg RetryConfig) Validate() error {
 	if cfg.Attempts <= 0 {
 		return sdkerrors.NewInvalidValueError("Attempts", sdkerrors.ErrNonPositiveNumber)
+	}
+
+	if cfg.MinInterval <= 0 {
+		return sdkerrors.NewInvalidValueError("MinInterval", sdkerrors.ErrNonPositiveNumber)
+	}
+
+	if cfg.MaxInterval <= 0 {
+		return sdkerrors.NewInvalidValueError("MaxInterval", sdkerrors.ErrNonPositiveNumber)
+	}
+
+	if cfg.MinInterval > cfg.MaxInterval {
+		return sdkerrors.NewInvalidValueError("MinInterval", errors.New("should be less than or equal to MaxInterval"))
 	}
 
 	if cfg.Factor <= 0 {

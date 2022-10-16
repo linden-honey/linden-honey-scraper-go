@@ -88,8 +88,7 @@ func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
 }
 
 func (f *Fetcher) fetchWithRetry(ctx context.Context, u *url.URL) (string, error) {
-	attempt := 0
-	for {
+	for attempt := 0; ; attempt++ {
 		res, err := f.fetch(ctx, u)
 		if err != nil {
 			if attempt == f.retry.Attempts-1 {
@@ -109,7 +108,6 @@ func (f *Fetcher) fetchWithRetry(ctx context.Context, u *url.URL) (string, error
 
 			select {
 			case <-time.After(delay):
-				attempt++
 				continue
 			case <-ctx.Done():
 				return "", fmt.Errorf("failed to retry fetch, attempt=%ds: %w", attempt+1, ctx.Err())

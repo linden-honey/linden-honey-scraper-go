@@ -87,6 +87,16 @@ func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
 
 	album := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": "))
 	if album != "" {
+		if artist, ok := findKeyByValueInMultiMap(grobArtistsAlbums, album); ok {
+			tags = append(tags, song.Tag{
+				Name:  "artist",
+				Value: artist,
+			})
+		}
+
+		if a, ok := findKeyByValueInMultiMap(grobInvalidAlbums, album); ok {
+			album = a
+		}
 		tags = append(tags, song.Tag{
 			Name:  "album",
 			Value: album,

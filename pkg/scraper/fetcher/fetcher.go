@@ -33,9 +33,6 @@ type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-// Option set optional parameters for the fetcher
-type Option func(*Fetcher)
-
 // NewFetcher returns a pointer to a new instance of the fetcher or an error
 func NewFetcher(
 	baseURL *url.URL,
@@ -58,6 +55,9 @@ func NewFetcher(
 
 	return f, nil
 }
+
+// Option set optional parameters for the fetcher
+type Option func(*Fetcher)
 
 // WithClient sets the http client for the fetcher
 func WithClient(client httpClient) Option {

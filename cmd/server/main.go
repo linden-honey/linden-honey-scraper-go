@@ -92,6 +92,13 @@ func main() {
 			r.Handle(cfg.Server.Health.Path, health.NewHTTPHandler(health.NewNopService()))
 		}
 
+		specHandler, err := specHTTPHandler(cfg.Server.Spec)
+		if err != nil {
+			fatal(logger, fmt.Errorf("failed to initialize swagger: %w", err))
+		}
+
+		r.Mount("/", specHandler)
+
 		r.Route("/api", func(r chi.Router) {
 			r.Mount("/songs", scraper.NewHTTPHandler(scrSvc))
 		})

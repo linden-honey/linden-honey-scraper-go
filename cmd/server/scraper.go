@@ -14,13 +14,13 @@ import (
 )
 
 func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, error) {
-	baseURL, err := url.Parse(cfg.BaseURL)
+	u, err := url.Parse(cfg.BaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse scraper base url: %w", err)
 	}
 
 	f, err := fetcher.NewFetcher(
-		baseURL,
+		u,
 		charmap.Windows1251,
 		fetcher.WithRetry(&fetcher.RetryConfig{
 			Attempts:    5,

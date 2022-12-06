@@ -9,6 +9,9 @@ var (
 				Enabled: true,
 				Path:    "/health",
 			},
+			Spec: SpecConfig{
+				FilePath: "./api/openapi.json",
+			},
 		},
 		Scrapers: ScrapersConfig{
 			Grob: ScraperConfig{

@@ -6,7 +6,7 @@ import (
 	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
 
-// Validate a Fetcher and returns an error if validation is failed.
+// Validate validates a [Fetcher] and returns an error if validation is failed.
 func (f Fetcher) Validate() error {
 	if f.baseURL == nil {
 		return sdkerrors.NewRequiredValueError("baseURL")
@@ -29,6 +29,7 @@ func (f Fetcher) Validate() error {
 	return nil
 }
 
+// Validate validates a [RetryConfig] and returns an error if validation is failed.
 func (cfg RetryConfig) Validate() error {
 	if cfg.Attempts <= 0 {
 		return sdkerrors.NewInvalidValueError("Attempts", sdkerrors.ErrNonPositiveNumber)

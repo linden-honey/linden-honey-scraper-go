@@ -8,25 +8,25 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
-// Scraper represents an implementation of the scraper
+// Scraper represents an implementation of the scraper.
 type Scraper struct {
 	fetcher    Fetcher
 	parser     Parser
 	validation bool
 }
 
-// Fetcher represents the content fetcher interface
+// Fetcher represents the content fetcher interface.
 type Fetcher interface {
 	Fetch(ctx context.Context, path string) (string, error)
 }
 
-// Parser represents the content parser interface
+// Parser represents the content parser interface.
 type Parser interface {
 	ParseSong(input string) (*song.Song, error)
 	ParsePreviews(input string) ([]song.Metadata, error)
 }
 
-// NewScraper returns a pointer to a new instance of the scraper or an error
+// NewScraper returns a pointer to a new instance of the scraper or an error.
 func NewScraper(
 	f Fetcher,
 	p Parser,
@@ -48,17 +48,17 @@ func NewScraper(
 	return scr, nil
 }
 
-// Option set optional parameters for the scraper
+// Option set optional parameters for the scraper.
 type Option func(*Scraper)
 
-// WithValidation enables or disables validation
+// WithValidation enables or disables validation.
 func WithValidation(validation bool) Option {
 	return func(scr *Scraper) {
 		scr.validation = validation
 	}
 }
 
-// GetSong scrapes a song from some source and returns it or an error
+// GetSong scrapes a song from some source and returns it or an error.
 func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) {
 	data, err := scr.fetcher.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
 	if err != nil {
@@ -81,7 +81,7 @@ func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 	return s, nil
 }
 
-// GetSongs scrapes songs from some source and returns them or an error
+// GetSongs scrapes songs from some source and returns them or an error.
 func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 	ps, err := scr.GetPreviews(ctx)
 	if err != nil {
@@ -123,7 +123,7 @@ loop:
 	return ss, nil
 }
 
-// GetPreviews scrapes previews from some source and returns them or an error
+// GetPreviews scrapes previews from some source and returns them or an error.
 func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 	data, err := scr.fetcher.Fetch(ctx, "texts")
 	if err != nil {

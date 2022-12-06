@@ -17,7 +17,7 @@ func substringAfterLast(s, substr string) string {
 	return s[startIndex+len(substr):]
 }
 
-func findKeyByValueInMultiMap[K, V comparable](m map[K][]V, val V) (K, bool) {
+func findKeyByValueInMultiValueMap[K, V comparable](m map[K][]V, val V) (K, bool) {
 	for k, vs := range m {
 		for _, v := range vs {
 			if val == v {

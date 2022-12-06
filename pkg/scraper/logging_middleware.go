@@ -10,7 +10,7 @@ import (
 	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 )
 
-// LoggingMiddleware returns the logging middleware for the scraper service
+// LoggingMiddleware returns the logging middleware for the scraper service.
 func LoggingMiddleware(logger log.Logger) middleware.Middleware[Service] {
 	return func(next Service) Service {
 		return &loggingMiddleware{
@@ -25,7 +25,7 @@ type loggingMiddleware struct {
 	next   Service
 }
 
-// GetSong proxies call to service with logging
+// GetSong proxies call to service with logging.
 func (mw *loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.Song, err error) {
 	_ = level.Debug(mw.logger).Log("msg", "getting a song", "song_id", id)
 
@@ -40,7 +40,7 @@ func (mw *loggingMiddleware) GetSong(ctx context.Context, id string) (s *song.So
 	return mw.next.GetSong(ctx, id)
 }
 
-// GetSongs proxies call to service with logging
+// GetSongs proxies call to service with logging.
 func (mw *loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err error) {
 	_ = level.Debug(mw.logger).Log("msg", "getting songs")
 
@@ -55,7 +55,7 @@ func (mw *loggingMiddleware) GetSongs(ctx context.Context) (ss []song.Song, err 
 	return mw.next.GetSongs(ctx)
 }
 
-// GetPreviews proxies call to service with logging
+// GetPreviews proxies call to service with logging.
 func (mw *loggingMiddleware) GetPreviews(ctx context.Context) (pp []song.Metadata, err error) {
 	_ = level.Debug(mw.logger).Log("msg", "getting previews")
 

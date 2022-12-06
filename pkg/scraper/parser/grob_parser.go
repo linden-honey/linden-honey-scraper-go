@@ -10,16 +10,16 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
-// GrobParser represents the parser implementation for gr-oborona.ru
+// GrobParser represents the parser implementation for gr-oborona.ru.
 type GrobParser struct {
 }
 
-// NewGrobParser returns a pointer to the new instance of GrobParser or an error
+// NewGrobParser returns a pointer to the new instance of GrobParser or an error.
 func NewGrobParser() *GrobParser {
 	return &GrobParser{}
 }
 
-// ParseSong parses html and returns a pointer to the Song instance
+// ParseSong parses html and returns a pointer to the Song instance.
 func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
 	document, err := p.parseHTML(input)
 	if err != nil {
@@ -47,7 +47,7 @@ func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
 	}, nil
 }
 
-// ParsePreviews parses html and returns a slice of pointers of the Preview instances
+// ParsePreviews parses html and returns a slice of pointers of the Preview instances.
 func (p *GrobParser) ParsePreviews(input string) ([]song.Metadata, error) {
 	document, err := p.parseHTML(input)
 	if err != nil {
@@ -87,14 +87,14 @@ func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
 
 	album := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": "))
 	if album != "" {
-		if artist, ok := findKeyByValueInMultiMap(grobArtistsAlbums, album); ok {
+		if artist, ok := findKeyByValueInMultiValueMap(grobArtistsAlbums, album); ok {
 			tags = append(tags, song.Tag{
 				Name:  "artist",
 				Value: artist,
 			})
 		}
 
-		if a, ok := findKeyByValueInMultiMap(grobInvalidAlbums, album); ok {
+		if a, ok := findKeyByValueInMultiValueMap(grobInvalidAlbums, album); ok {
 			album = a
 		}
 		tags = append(tags, song.Tag{

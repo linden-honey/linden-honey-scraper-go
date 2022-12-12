@@ -8,13 +8,14 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 )
 
-// Aggregator represents an aggregation service implementation.
+// Aggregator represents an implementation of the [scraper.Service]
+// that aggregates results from multiple source.
 type Aggregator struct {
 	services []scraper.Service
 }
 
-// NewAggregator returns a pointer to a new instance of the aggregator or an error.
-func NewAggregator(services ...scraper.Service) (*Aggregator, error) {
+// New returns a pointer to the new instance of [Aggregator] or an error.
+func New(services ...scraper.Service) (*Aggregator, error) {
 	return &Aggregator{
 		services: services,
 	}, nil

@@ -69,7 +69,7 @@ func main() {
 			)(grobScrSvc)
 		}
 
-		scrSvc, err = aggregator.NewAggregator(
+		scrSvc, err = aggregator.New(
 			grobScrSvc,
 		)
 		if err != nil {

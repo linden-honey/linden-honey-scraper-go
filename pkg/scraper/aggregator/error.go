@@ -4,21 +4,21 @@ import (
 	"fmt"
 )
 
-// AggregationError represents an aggregation error object.
+// AggregationError represents an error object with multiple causes and a general message.
 type AggregationError struct {
-	msg     string
-	reasons []error
+	msg    string
+	causes []error
 }
 
-// NewAggregationError return a pointer to a new instance of the aggregation error.
-func NewAggregationError(msg string, reasons ...error) *AggregationError {
+// NewAggregationError return a pointer to the new instance of [AggregationError].
+func NewAggregationError(msg string, causes ...error) *AggregationError {
 	return &AggregationError{
-		msg:     msg,
-		reasons: reasons,
+		msg:    msg,
+		causes: causes,
 	}
 }
 
 // Error returns an aggregated error message.
 func (err *AggregationError) Error() string {
-	return fmt.Sprintf("%s: %s", err.msg, err.reasons)
+	return fmt.Sprintf("%s: %s", err.msg, err.causes)
 }

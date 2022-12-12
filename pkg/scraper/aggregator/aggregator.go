@@ -38,7 +38,7 @@ func (a *Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error)
 
 // GetSongs returns songs or an error from aggregated services.
 func (a *Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
-	out := make([]song.Song, 0)
+	res := make([]song.Song, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		songs, err := svc.GetSongs(ctx)
@@ -47,19 +47,19 @@ func (a *Aggregator) GetSongs(ctx context.Context) ([]song.Song, error) {
 			continue
 		}
 
-		out = append(out, songs...)
+		res = append(res, songs...)
 	}
 
 	if len(errs) != 0 {
 		return nil, NewAggregationError("failed to aggregate scraped songs", errs...)
 	}
 
-	return out, nil
+	return res, nil
 }
 
 // GetPreviews returns previews or an error from aggregated services.
 func (a *Aggregator) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
-	out := make([]song.Metadata, 0)
+	res := make([]song.Metadata, 0)
 	errs := make([]error, 0)
 	for _, svc := range a.services {
 		previews, err := svc.GetPreviews(ctx)
@@ -68,12 +68,12 @@ func (a *Aggregator) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 			continue
 		}
 
-		out = append(out, previews...)
+		res = append(res, previews...)
 	}
 
 	if len(errs) != 0 {
 		return nil, NewAggregationError("failed to aggregate scraped previews", errs...)
 	}
 
-	return out, nil
+	return res, nil
 }

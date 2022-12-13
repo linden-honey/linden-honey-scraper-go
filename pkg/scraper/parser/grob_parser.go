@@ -10,16 +10,16 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
-// GrobParser represents the parser implementation for gr-oborona.ru.
+// GrobParser is the implementation of a song parser for the site gr-oborona.ru.
 type GrobParser struct {
 }
 
-// NewGrobParser returns a pointer to the new instance of GrobParser or an error.
+// NewGrobParser returns a pointer to the new instance of [GrobParser].
 func NewGrobParser() *GrobParser {
 	return &GrobParser{}
 }
 
-// ParseSong parses html and returns a pointer to the Song instance.
+// ParseSong parses the input html and returns a pointer to the new instance of [song.Song] or an error.
 func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
 	document, err := p.parseHTML(input)
 	if err != nil {
@@ -47,7 +47,7 @@ func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
 	}, nil
 }
 
-// ParsePreviews parses html and returns a slice of pointers of the Preview instances.
+// ParsePreviews parses the input html and returns a slice of [song.Metadata] instances or an error.
 func (p *GrobParser) ParsePreviews(input string) ([]song.Metadata, error) {
 	document, err := p.parseHTML(input)
 	if err != nil {

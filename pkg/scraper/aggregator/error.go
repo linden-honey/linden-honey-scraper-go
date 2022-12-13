@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// AggregationError represents an error object with multiple causes and a general message.
+// AggregationError is an error with multiple causes and a general message.
 type AggregationError struct {
 	msg    string
 	causes []error

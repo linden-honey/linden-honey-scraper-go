@@ -8,7 +8,7 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 )
 
-// Aggregator represents an implementation of the [scraper.Service]
+// Aggregator is an implementation of the [scraper.Service]
 // that aggregates results from multiple source.
 type Aggregator struct {
 	services []scraper.Service

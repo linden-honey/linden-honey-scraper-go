@@ -12,7 +12,7 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-// Fetcher represents an implementation of the content fetcher
+// Fetcher is an implementation of the content fetcher
 // with relative path support.
 type Fetcher struct {
 	baseURL  *url.URL
@@ -21,7 +21,7 @@ type Fetcher struct {
 	retry    *RetryConfig
 }
 
-// RetryConfig represents the retry configuration object.
+// RetryConfig is the retry configuration for [Fetcher].
 type RetryConfig struct {
 	Attempts          int
 	MinInterval       time.Duration

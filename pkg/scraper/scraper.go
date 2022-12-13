@@ -8,19 +8,19 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
-// Scraper represents an implementation of the scraper.
+// Scraper is an implementation of the scraper.
 type Scraper struct {
 	fetcher    Fetcher
 	parser     Parser
 	validation bool
 }
 
-// Fetcher represents the content fetcher interface.
+// Fetcher is the content fetcher interface.
 type Fetcher interface {
 	Fetch(ctx context.Context, path string) (string, error)
 }
 
-// Parser represents the content parser interface.
+// Parser is the content parser interface.
 type Parser interface {
 	ParseSong(input string) (*song.Song, error)
 	ParsePreviews(input string) ([]song.Metadata, error)

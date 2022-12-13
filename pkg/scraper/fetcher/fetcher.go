@@ -12,7 +12,8 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-// Fetcher represents an implementation of the fetcher.
+// Fetcher represents an implementation of the content fetcher
+// with relative path support.
 type Fetcher struct {
 	baseURL  *url.URL
 	encoding *charmap.Charmap
@@ -20,7 +21,7 @@ type Fetcher struct {
 	retry    *RetryConfig
 }
 
-// RetryConfig represents the retry configuration of the fetcher.
+// RetryConfig represents the retry configuration object.
 type RetryConfig struct {
 	Attempts          int
 	MinInterval       time.Duration
@@ -33,8 +34,8 @@ type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-// NewFetcher returns a pointer to a new instance of the fetcher or an error.
-func NewFetcher(
+// New returns a pointer to the new instance of [Fetcher] or an error.
+func New(
 	baseURL *url.URL,
 	encoding *charmap.Charmap,
 	opts ...Option,
@@ -56,24 +57,25 @@ func NewFetcher(
 	return f, nil
 }
 
-// Option set optional parameters for the fetcher.
+// Option set optional parameters for the [Fetcher].
 type Option func(*Fetcher)
 
-// WithClient sets the http client for the fetcher.
+// WithClient sets the http client for the [Fetcher].
 func WithClient(client httpClient) Option {
 	return func(f *Fetcher) {
 		f.client = client
 	}
 }
 
-// WithRetry sets the retry configuration of the fetcher.
+// WithRetry sets the retry configuration of the [Fetcher].
 func WithRetry(cfg *RetryConfig) Option {
 	return func(f *Fetcher) {
 		f.retry = cfg
 	}
 }
 
-// Fetch send GET request under relative path and returns content as a string.
+// Fetch sends a GET-request under a relative path and returns the content as a string
+// or returns an error.
 func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
 	u, err := f.baseURL.Parse(path)
 	if err != nil {

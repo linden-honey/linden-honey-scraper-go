@@ -19,7 +19,7 @@ func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, e
 		return nil, fmt.Errorf("failed to parse scraper base url: %w", err)
 	}
 
-	f, err := fetcher.NewFetcher(
+	f, err := fetcher.New(
 		u,
 		charmap.Windows1251,
 		fetcher.WithRetry(&fetcher.RetryConfig{

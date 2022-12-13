@@ -12,8 +12,7 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-// Fetcher is an implementation of the content fetcher
-// with relative path support.
+// Fetcher is an implementation of an eager content fetcher.
 type Fetcher struct {
 	baseURL  *url.URL
 	encoding *charmap.Charmap
@@ -67,7 +66,7 @@ func WithClient(client httpClient) Option {
 	}
 }
 
-// WithRetry sets the retry configuration of the [Fetcher].
+// WithRetry sets the retry configuration for the [Fetcher].
 func WithRetry(cfg *RetryConfig) Option {
 	return func(f *Fetcher) {
 		f.retry = cfg

@@ -9,7 +9,7 @@ import (
 	sdkhttp "github.com/linden-honey/linden-honey-sdk-go/transport/http"
 )
 
-// NewHTTPHandler returns the new instance of http.Handler.
+// NewHTTPHandler returns a new instance of [http.Handler].
 func NewHTTPHandler(svc Service) http.Handler {
 	r := chi.NewRouter()
 

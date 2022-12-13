@@ -33,7 +33,7 @@ func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, e
 		return nil, fmt.Errorf("failed to initialize a fetcher: %w", err)
 	}
 
-	return scraper.NewScraper(
+	return scraper.New(
 		f,
 		parser.NewGrobParser(),
 		scraper.WithValidation(true),

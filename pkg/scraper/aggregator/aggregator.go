@@ -30,14 +30,14 @@ func (a *Aggregator) GetSong(ctx context.Context, id string) (*song.Song, error)
 	for i, svc := range a.services {
 		s, err := svc.GetSong(ctx, id)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("failed to get song from services[%d]: %w", i, err))
+			errs = append(errs, fmt.Errorf("failed to get the song from services[%d]: %w", i, err))
 			continue
 		}
 
 		return s, nil
 	}
 
-	return nil, NewAggregationError("failed to scrape a song", errs...)
+	return nil, NewAggregationError("failed to get the song from any service", errs...)
 }
 
 // GetSongs scrapes and aggregates all songs from multiple services

@@ -27,7 +27,7 @@ func makeGetSongHTTPHandlerFunc(svc Service) http.HandlerFunc {
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
-				http.StatusInternalServerError,
+				http.StatusNotFound,
 				fmt.Errorf("failed to get song by id=%s: %w", id, err),
 			)
 
@@ -44,7 +44,7 @@ func makeGetSongsHTTPHandlerFunc(svc Service) http.HandlerFunc {
 		if err != nil {
 			_ = sdkhttp.EncodeJSONError(
 				w,
-				http.StatusInternalServerError,
+				http.StatusUnprocessableEntity,
 				fmt.Errorf("failed to get songs: %w", err),
 			)
 

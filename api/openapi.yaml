@@ -1,0 +1,136 @@
+openapi: 3.0.3
+info:
+  title: Linden Honey Scraper
+  version: v0.1.0
+paths:
+  /api/songs/{id}:
+    get:
+      summary: Get song by id
+      operationId: getSong
+      tags:
+        - Songs
+      parameters:
+        - name: id
+          description: Song id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Song"
+        "[4xx-5xx]":
+          $ref: "#/components/responses/Error"
+  /api/songs:
+    get:
+      summary: Get all songs
+      operationId: getSongs
+      tags:
+        - Songs
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Song"
+  /api/songs/previews:
+    get:
+      summary: Get all song previews
+      operationId: getSongs
+      tags:
+        - Songs
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Metadata"
+        "[4xx-5xx]":
+          $ref: "#/components/responses/Error"
+components:    
+  schemas:
+    Song:
+      allOf:
+        - $ref: "#/components/schemas/Metadata"
+        - type: object
+          properties:
+            lyrics:
+              $ref: "#/components/schemas/Lyrics"
+          required:
+            - lyrics
+    Metadata:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        tags:
+          $ref: "#/components/schemas/Tags"
+      required:
+        - id
+        - title
+    Tags:
+      type: array
+      items:
+        $ref: "#/components/schemas/Tag"
+    Tag:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+      required:
+        - name
+        - value
+    Lyrics:
+      type: array
+      items:
+        $ref: "#/components/schemas/Verse"
+    Verse:
+      type: object
+      properties:
+        quotes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Quote"
+      required:
+        - quotes
+    Quote:
+      type: object
+      properties:
+        phrase:
+          type: string
+      required:
+        - phrase
+    Error:
+      type: object
+      properties:
+        timestamp:
+          type: string
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - timestamp
+        - error
+        - message
+  responses:
+    Error:
+      description: Error happened
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

@@ -28,7 +28,7 @@ prepare: mod/download fmt
 
 .PHONY: run
 run: prepare
-	$(GO) run -v ./cmd/server/main.go
+	$(GO) run -v ./cmd/server
 
 .PHONY: build
 build: prepare

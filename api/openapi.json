@@ -127,8 +127,7 @@
         },
         "required": [
           "id",
-          "title",
-          "tags"
+          "title"
         ]
       },
       "Tags": {

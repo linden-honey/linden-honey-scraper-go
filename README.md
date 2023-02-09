@@ -2,7 +2,7 @@
 
 > Lyrics scraper service powered by Golang
 
-[![build](https://img.shields.io/github/workflow/status/linden-honey/linden-honey-scraper-go/CI)](https://github.com/linden-honey/linden-honey-scraper-go/actions?query=workflow%3ACI)
+[![build](https://img.shields.io/github/workflow/status/linden-honey/linden-honey-scraper-go/ci.yml)](https://github.com/linden-honey/linden-honey-scraper-go/actions?query=workflow%3ACI)
 [![version](https://img.shields.io/github/go-mod/go-version/linden-honey/linden-honey-scraper-go)](https://go.dev/)
 [![coverage](https://img.shields.io/codecov/c/github/linden-honey/linden-honey-scraper-go)](https://codecov.io/github/linden-honey/linden-honey-scraper-go)
 [![tag](https://img.shields.io/github/tag/linden-honey/linden-honey-scraper-go.svg)](https://github.com/linden-honey/linden-honey-scraper-go/tags)

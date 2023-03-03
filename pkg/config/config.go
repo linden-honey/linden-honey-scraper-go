@@ -9,15 +9,15 @@ import (
 // Config is a configuration object.
 type Config struct {
 	Server   ServerConfig
+	Health   HealthConfig
+	Spec     SpecConfig
 	Scrapers ScrapersConfig
 }
 
 // ServerConfig is a configuration object.
 type ServerConfig struct {
-	Host   string       `env:"SERVER_HOST"`
-	Port   int          `env:"SERVER_PORT"`
-	Health HealthConfig `envPrefix:"SERVER_"`
-	Spec   SpecConfig   `envPrefix:"SERVER_"`
+	Host string `env:"SERVER_HOST"`
+	Port int    `env:"SERVER_PORT"`
 }
 
 // HealthConfig is a configuration object.

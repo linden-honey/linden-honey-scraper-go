@@ -7,6 +7,8 @@ import (
 func TestConfig_Validate(t *testing.T) {
 	type fields struct {
 		Server   ServerConfig
+		Health   HealthConfig
+		Spec     SpecConfig
 		Scrapers ScrapersConfig
 	}
 	tests := []struct {
@@ -20,13 +22,13 @@ func TestConfig_Validate(t *testing.T) {
 				Server: ServerConfig{
 					Host: "localhost",
 					Port: 8080,
-					Health: HealthConfig{
-						Enabled: true,
-						Path:    "/health",
-					},
-					Spec: SpecConfig{
-						FilePath: "./api/openapi.json",
-					},
+				},
+				Health: HealthConfig{
+					Enabled: true,
+					Path:    "/health",
+				},
+				Spec: SpecConfig{
+					FilePath: "./api/openapi.json",
 				},
 				Scrapers: ScrapersConfig{
 					Grob: ScraperConfig{
@@ -48,18 +50,58 @@ func TestConfig_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "err  invalid health",
+			fields: fields{
+				Server: ServerConfig{
+					Host: "localhost",
+					Port: 8080,
+				},
+				Health: HealthConfig{},
+				Spec: SpecConfig{
+					FilePath: "./api/openapi.json",
+				},
+				Scrapers: ScrapersConfig{
+					Grob: ScraperConfig{
+						BaseURL: "https://test.com/",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  invalid spec",
+			fields: fields{
+				Server: ServerConfig{
+					Host: "localhost",
+					Port: 8080,
+				},
+				Health: HealthConfig{
+					Enabled: true,
+					Path:    "/health",
+				},
+				Spec: SpecConfig{},
+				Scrapers: ScrapersConfig{
+					Grob: ScraperConfig{
+						BaseURL: "https://test.com/",
+					},
+				},
+			},
+			wantErr: true,
+		},
+
+		{
 			name: "err  invalid scrapers",
 			fields: fields{
 				Server: ServerConfig{
 					Host: "localhost",
 					Port: 8080,
-					Health: HealthConfig{
-						Enabled: true,
-						Path:    "/health",
-					},
-					Spec: SpecConfig{
-						FilePath: "./api/openapi.json",
-					},
+				},
+				Health: HealthConfig{
+					Enabled: true,
+					Path:    "/health",
+				},
+				Spec: SpecConfig{
+					FilePath: "./api/openapi.json",
 				},
 				Scrapers: ScrapersConfig{},
 			},
@@ -81,10 +123,8 @@ func TestConfig_Validate(t *testing.T) {
 
 func TestServerConfig_Validate(t *testing.T) {
 	type fields struct {
-		Host   string
-		Port   int
-		Health HealthConfig
-		Spec   SpecConfig
+		Host string
+		Port int
 	}
 	tests := []struct {
 		name    string
@@ -96,13 +136,6 @@ func TestServerConfig_Validate(t *testing.T) {
 			fields: fields{
 				Host: "localhost",
 				Port: 8080,
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
 			},
 		},
 		{
@@ -110,13 +143,6 @@ func TestServerConfig_Validate(t *testing.T) {
 			fields: fields{
 				Host: "",
 				Port: 8080,
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
 			},
 			wantErr: true,
 		},
@@ -125,38 +151,6 @@ func TestServerConfig_Validate(t *testing.T) {
 			fields: fields{
 				Host: "localhost",
 				Port: 0,
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "err  invalid health",
-			fields: fields{
-				Host:   "localhost",
-				Port:   8080,
-				Health: HealthConfig{},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "err  invalid spec",
-			fields: fields{
-				Host: "localhost",
-				Port: 8080,
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{},
 			},
 			wantErr: true,
 		},
@@ -164,10 +158,8 @@ func TestServerConfig_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := ServerConfig{
-				Host:   tt.fields.Host,
-				Port:   tt.fields.Port,
-				Health: tt.fields.Health,
-				Spec:   tt.fields.Spec,
+				Host: tt.fields.Host,
+				Port: tt.fields.Port,
 			}
 			if err := cfg.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("ServerConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)

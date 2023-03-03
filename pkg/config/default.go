@@ -5,13 +5,13 @@ var (
 		Server: ServerConfig{
 			Host: "localhost",
 			Port: 8080,
-			Health: HealthConfig{
-				Enabled: true,
-				Path:    "/health",
-			},
-			Spec: SpecConfig{
-				FilePath: "./api/openapi.json",
-			},
+		},
+		Health: HealthConfig{
+			Enabled: true,
+			Path:    "/health",
+		},
+		Spec: SpecConfig{
+			FilePath: "./api/openapi.json",
 		},
 		Scrapers: ScrapersConfig{
 			Grob: ScraperConfig{

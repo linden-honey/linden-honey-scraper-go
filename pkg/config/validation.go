@@ -12,6 +12,14 @@ func (cfg Config) Validate() error {
 		return sdkerrors.NewInvalidValueError("Server", err)
 	}
 
+	if err := cfg.Health.Validate(); err != nil {
+		return sdkerrors.NewInvalidValueError("Health", err)
+	}
+
+	if err := cfg.Spec.Validate(); err != nil {
+		return sdkerrors.NewInvalidValueError("Spec", err)
+	}
+
 	if err := cfg.Scrapers.Validate(); err != nil {
 		return sdkerrors.NewInvalidValueError("Scrapers", err)
 	}
@@ -27,14 +35,6 @@ func (cfg ServerConfig) Validate() error {
 
 	if cfg.Port <= 0 {
 		return sdkerrors.NewInvalidValueError("Port", sdkerrors.ErrNonPositiveNumber)
-	}
-
-	if err := cfg.Health.Validate(); err != nil {
-		return sdkerrors.NewInvalidValueError("Health", err)
-	}
-
-	if err := cfg.Spec.Validate(); err != nil {
-		return sdkerrors.NewInvalidValueError("Spec", err)
 	}
 
 	return nil

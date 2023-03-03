@@ -88,11 +88,11 @@ func main() {
 		r := chi.NewRouter()
 		r.Use(chimiddleware.Recoverer)
 
-		if cfg.Server.Health.Enabled {
-			r.Handle(cfg.Server.Health.Path, health.NewHTTPHandler(health.NewNopService()))
+		if cfg.Health.Enabled {
+			r.Handle(cfg.Health.Path, health.NewHTTPHandler(health.NewNopService()))
 		}
 
-		specHandler, err := specHTTPHandler(cfg.Server.Spec)
+		specHandler, err := specHTTPHandler(cfg.Spec)
 		if err != nil {
 			fatal(logger, fmt.Errorf("failed to initialize swagger: %w", err))
 		}

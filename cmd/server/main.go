@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -12,14 +13,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
-	"github.com/go-kit/log"
 
 	"github.com/linden-honey/linden-honey-sdk-go/health"
 	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/aggregator"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/scraper"
+	appmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/application/middleware"
+	httptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/application/transport/http"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 )
 
@@ -34,54 +36,42 @@ func main() {
 		defer cancel()
 	}
 
-	var logger log.Logger
-	{
-		logger = newLogger()
-	}
+	initLogger()
 
-	_ = logger.Log("msg", "initialization of the application")
+	slog.Info("initialization of the application")
 
-	_ = logger.Log("msg", "initialize configuration")
+	slog.Info("initializing configuration")
 
 	var cfg *config.Config
 	{
 		var err error
 		cfg, err = config.New()
 		if err != nil {
-			fatal(logger, fmt.Errorf("failed to initialize a config: %w", err))
+			fatal(fmt.Errorf("failed to initialize a config: %w", err))
 		}
 	}
 
-	_ = logger.Log("msg", "initialize services")
+	slog.Info("initializing services")
 
 	var scrSvc scraper.Service
 	{
-		var err error
-		var grobScrSvc scraper.Service
-		{
-			grobScrSvc, err = newScraper(cfg.Scrapers.Grob, parser.NewGrobParser())
-			if err != nil {
-				fatal(logger, fmt.Errorf("failed to initialize grob scraper: %w", err))
-			}
-
-			grobScrSvc = middleware.Compose(
-				scraper.LoggingMiddleware(log.With(logger, "component", "scraper", "scraper_id", "grob")),
-			)(grobScrSvc)
-		}
-
-		scrSvc, err = aggregator.New(
-			grobScrSvc,
-		)
+		grobScr, err := newScraper(cfg.Scrapers.Grob, parser.NewGrobParser())
 		if err != nil {
-			fatal(logger, fmt.Errorf("failed to initialize an aggregator: %w", err))
+			fatal(fmt.Errorf("failed to initialize grob scraper: %w", err))
 		}
+
+		scrSvc = domain.NewScraperService(
+			domain.SongServiceWithScraper(
+				"grob", grobScr,
+			),
+		)
 
 		scrSvc = middleware.Compose(
-			scraper.LoggingMiddleware(log.With(logger, "component", "aggregator")),
+			appmiddleware.ScraperLoggingMiddleware(),
 		)(scrSvc)
 	}
 
-	_ = logger.Log("msg", "initialize http server")
+	slog.Info("initializing http server")
 
 	var httpServer *http.Server
 	{
@@ -94,13 +84,13 @@ func main() {
 
 		specHandler, err := specHTTPHandler(cfg.Spec)
 		if err != nil {
-			fatal(logger, fmt.Errorf("failed to initialize swagger: %w", err))
+			fatal(fmt.Errorf("failed to initialize swagger: %w", err))
 		}
 
 		r.Mount("/", specHandler)
 
 		r.Route("/api", func(r chi.Router) {
-			r.Mount("/songs", scraper.NewHTTPHandler(scrSvc))
+			r.Mount("/songs", httptransport.NewScraperHandler(scrSvc))
 		})
 
 		addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
@@ -117,7 +107,7 @@ func main() {
 			defer cancel()
 
 			if err := httpServer.Shutdown(ctx); err != nil {
-				warn(logger, fmt.Errorf("failed to shutdown http server: %w", err))
+				warn(fmt.Errorf("failed to shutdown http server: %w", err))
 			}
 		}()
 	}
@@ -136,6 +126,6 @@ func main() {
 		errc <- fmt.Errorf("%s", <-sigc)
 	}()
 
-	_ = logger.Log("msg", "application started")
-	_ = logger.Log("msg", "application stopped", "exit", <-errc)
+	slog.Info("application started")
+	slog.Info("application stopped", "exit", <-errc)
 }

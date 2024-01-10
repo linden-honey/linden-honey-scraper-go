@@ -7,7 +7,7 @@ import (
 
 	"github.com/linden-honey/linden-honey-sdk-go/swaggerui"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
 )
 
 func specHTTPHandler(cfg config.SpecConfig) (http.Handler, error) {

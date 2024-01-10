@@ -76,27 +76,26 @@ func WithRetry(cfg *RetryConfig) Option {
 // Fetch sends a GET-request under a relative path and returns the content as a string
 // or returns an error.
 func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
-	u, err := f.baseURL.Parse(path)
+	out, err := f.baseURL.Parse(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse an URL: %w", err)
 	}
 
 	if f.retry != nil {
-		return f.fetchWithRetry(ctx, u)
+		return f.fetchWithRetry(ctx, out)
 	}
 
-	return f.fetch(ctx, u)
+	return f.fetch(ctx, out)
 }
 
 func (f *Fetcher) fetchWithRetry(ctx context.Context, u *url.URL) (string, error) {
 	for attempt := 0; ; attempt++ {
-		res, err := f.fetch(ctx, u)
+		out, err := f.fetch(ctx, u)
 		if err != nil {
 			if attempt == f.retry.Attempts-1 {
 				return "", fmt.Errorf("failed to fetch after attempts=%d: %w", attempt+1, err)
 			}
 
-			rand.Seed(time.Now().UTC().UnixNano())
 			delay := f.retry.Factor * time.Duration(attempt+1)
 			jitter := time.Duration(rand.Float64() * float64(f.retry.Factor))
 			delay = delay + jitter
@@ -115,7 +114,7 @@ func (f *Fetcher) fetchWithRetry(ctx context.Context, u *url.URL) (string, error
 			}
 		}
 
-		return res, nil
+		return out, nil
 	}
 }
 

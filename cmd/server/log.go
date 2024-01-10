@@ -1,26 +1,23 @@
 package main
 
 import (
+	"log/slog"
 	"os"
-
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 )
 
-func newLogger() (logger log.Logger) {
-	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
-	logger = level.NewFilter(logger, level.AllowDebug())
-	logger = level.NewInjector(logger, level.InfoValue())
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+func initLogger() {
+	l := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
 
-	return logger
+	slog.SetDefault(l)
 }
 
-func warn(logger log.Logger, err error) {
-	_ = level.Warn(logger).Log("err", err)
+func warn(err error) {
+	slog.Warn(err.Error())
 }
 
-func fatal(logger log.Logger, err error) {
-	_ = level.Error(logger).Log("err", err)
+func fatal(err error) {
+	slog.Error(err.Error())
 	os.Exit(1)
 }

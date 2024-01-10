@@ -8,7 +8,7 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
-// Scraper is an implementation of a song scraper from some source.
+// Scraper is an implementation of a songs scraper from some source.
 type Scraper struct {
 	fetcher    Fetcher
 	parser     Parser
@@ -65,20 +65,20 @@ func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	s, err := scr.parser.ParseSong(data)
+	out, err := scr.parser.ParseSong(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse a song: %w", err)
 	}
 
-	s.ID = id // backfill ID
+	out.ID = id // backfill ID
 
 	if scr.validation {
-		if err := s.Validate(); err != nil {
+		if err := out.Validate(); err != nil {
 			return nil, fmt.Errorf("failed to validate a song: %w", err)
 		}
 	}
 
-	return s, nil
+	return out, nil
 }
 
 // GetSongs scrapes all songs and returns a slice of [song.Song] instances or an error.
@@ -102,13 +102,13 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 		}(p.ID)
 	}
 
-	ss := make([]song.Song, 0, len(ps))
+	out := make([]song.Song, 0, len(ps))
 loop:
 	for {
 		select {
 		case s := <-sc:
-			ss = append(ss, s)
-			if len(ss) == len(ps) {
+			out = append(out, s)
+			if len(out) == len(ps) {
 				break loop
 			}
 		case err := <-errc:
@@ -116,11 +116,11 @@ loop:
 		}
 	}
 
-	sort.SliceStable(ss, func(i, j int) bool {
-		return ss[i].Title < ss[j].Title
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Title < out[j].Title
 	})
 
-	return ss, nil
+	return out, nil
 }
 
 // GetPreviews scrapes songs metadata and returns a slice of [song.Metadata] instances or an error.
@@ -130,12 +130,12 @@ func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 
-	ps, err := scr.parser.ParsePreviews(data)
+	out, err := scr.parser.ParsePreviews(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse previews: %w", err)
 	}
 
-	for _, p := range ps {
+	for _, p := range out {
 		if scr.validation {
 			if err := p.Validate(); err != nil {
 				return nil, fmt.Errorf("failed to validate a preview with id=%s : %w", p.ID, err)
@@ -143,9 +143,9 @@ func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 		}
 	}
 
-	sort.SliceStable(ps, func(i, j int) bool {
-		return ps[i].Title < ps[j].Title
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Title < out[j].Title
 	})
 
-	return ps, nil
+	return out, nil
 }

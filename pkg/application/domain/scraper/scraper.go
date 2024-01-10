@@ -6,9 +6,8 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
-// Service is the songs scraper interface.
+// Service is an interface of song use-cases.
 type Service interface {
-	GetSong(ctx context.Context, id string) (*song.Song, error)
 	GetSongs(ctx context.Context) ([]song.Song, error)
-	GetPreviews(ctx context.Context) ([]song.Metadata, error)
+	GetSongsByScraperID(ctx context.Context, scrID string) ([]song.Song, error)
 }

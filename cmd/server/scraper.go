@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/text/encoding/charmap"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/config"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/fetcher"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"

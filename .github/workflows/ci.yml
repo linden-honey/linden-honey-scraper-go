@@ -6,13 +6,13 @@ on:
 jobs:
   pipeline:
     name: pipiline
-    runs-on: ubuntu-latest
+    runs-on: alpine-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version: 1.21
       - run: go version
       - uses: actions/cache@v3
         with:
@@ -25,7 +25,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.50
+          version: v1.55.2
       - name: Build
         run: make build
       - name: Test

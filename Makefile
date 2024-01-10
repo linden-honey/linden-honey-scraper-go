@@ -1,12 +1,14 @@
 GO							?= @go
 
 PACKAGES					?= ./...
-TEST_PACKAGES				?= $(PACKAGES)
+TEST_PACKAGES				?= ./...
 COVER_PACKAGES				?= $(shell echo $(TEST_PACKAGES) | tr " " ",")
 COVER_PROFILE				?= coverage.out
 
 GOLANGCI_LINT				?= @golangci-lint
 
+DOCKER						?= @docker
+DOCKER_FILE					?= Dockerfile
 DOCKER_IMAGE_REGISTRY		?= docker.io/library
 DOCKER_IMAGE_REPOSITORY		?= lindenhoney/linden-honey-scraper-go
 DOCKER_IMAGE_TAG			?= latest
@@ -25,10 +27,6 @@ mod/download:
 
 .PHONY: prepare
 prepare: mod/download fmt
-
-.PHONY: run
-run: prepare
-	$(GO) run -v ./cmd/server
 
 .PHONY: build
 build: prepare
@@ -53,8 +51,8 @@ lint: prepare
 
 .PHONY: docker/build
 docker/build:
-	@docker build -t $(DOCKER_IMAGE) .
+	$(DOCKER) build -t $(DOCKER_IMAGE) -f $(DOCKER_FILE) .
 
 .PHONY: docker/push
 docker/push:
-	@docker push $(DOCKER_IMAGE)
+	$(DOCKER) push $(DOCKER_IMAGE)

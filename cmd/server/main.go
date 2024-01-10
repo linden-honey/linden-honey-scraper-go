@@ -15,12 +15,12 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/linden-honey/linden-honey-sdk-go/health"
-	"github.com/linden-honey/linden-honey-sdk-go/middleware"
+	sdkmiddleware "github.com/linden-honey/linden-honey-sdk-go/middleware"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/scraper"
-	appmiddleware "github.com/linden-honey/linden-honey-scraper-go/pkg/application/middleware"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/song"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/middleware"
 	httptransport "github.com/linden-honey/linden-honey-scraper-go/pkg/application/transport/http"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 )
@@ -53,22 +53,22 @@ func main() {
 
 	slog.Info("initializing services")
 
-	var scrSvc scraper.Service
+	var songSvc song.Service
 	{
 		grobScr, err := newScraper(cfg.Scrapers.Grob, parser.NewGrobParser())
 		if err != nil {
 			fatal(fmt.Errorf("failed to initialize grob scraper: %w", err))
 		}
 
-		scrSvc = domain.NewScraperService(
+		songSvc = domain.NewSongService(
 			domain.SongServiceWithScraper(
 				"grob", grobScr,
 			),
 		)
 
-		scrSvc = middleware.Compose(
-			appmiddleware.ScraperLoggingMiddleware(),
-		)(scrSvc)
+		songSvc = sdkmiddleware.Compose(
+			middleware.SongLoggingMiddleware(),
+		)(songSvc)
 	}
 
 	slog.Info("initializing http server")
@@ -90,7 +90,7 @@ func main() {
 		r.Mount("/", specHandler)
 
 		r.Route("/api", func(r chi.Router) {
-			r.Mount("/songs", httptransport.NewScraperHandler(scrSvc))
+			r.Mount("/songs", httptransport.NewScraperHandler(songSvc))
 		})
 
 		addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)

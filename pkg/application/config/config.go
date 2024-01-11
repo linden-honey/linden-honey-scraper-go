@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -39,6 +40,17 @@ type ScrapersConfig struct {
 // ScraperConfig is a configuration object.
 type ScraperConfig struct {
 	BaseURL string `env:"SCRAPER_BASE_URL"`
+	Retry   RetryConfig
+}
+
+// RetryConfig is a configuration object.
+type RetryConfig struct {
+	Enabled        bool          `env:"RETRY_ENABLED"`
+	Attempts       uint          `env:"RETRY_ATTEMPTS"`
+	MinInterval    time.Duration `env:"RETRY_MIN_INTERVAL"`
+	MaxInterval    time.Duration `env:"RETRY_MAX_INTERVAL"`
+	Factor         float64       `env:"RETRY_FACTOR"`
+	MaxElapsedTime time.Duration `env:"RETRY_MAX_ELAPSED_TIME"`
 }
 
 // New returns a pointer to the new instance of [Config] or an error.

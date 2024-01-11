@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"time"
 
 	"golang.org/x/text/encoding/charmap"
 )
@@ -17,21 +15,14 @@ type Fetcher struct {
 	baseURL  *url.URL
 	encoding *charmap.Charmap
 	client   httpClient
-	retry    *RetryConfig
-}
-
-// RetryConfig is the retry configuration for [Fetcher].
-type RetryConfig struct {
-	Attempts          int
-	MinInterval       time.Duration
-	MaxInterval       time.Duration
-	Factor            time.Duration
-	MaxJitterInterval time.Duration
+	retry    retryFunc
 }
 
 type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
+
+type retryFunc func(context.Context, func() (string, error)) (string, error)
 
 // New returns a pointer to the new instance of [Fetcher] or an error.
 func New(
@@ -66,56 +57,28 @@ func WithClient(client httpClient) Option {
 	}
 }
 
-// WithRetry sets the retry configuration for the [Fetcher].
-func WithRetry(cfg *RetryConfig) Option {
+// WithRetry sets the retry function for the [Fetcher].
+func WithRetry(retry retryFunc) Option {
 	return func(f *Fetcher) {
-		f.retry = cfg
+		f.retry = retry
 	}
 }
 
 // Fetch sends a GET-request under a relative path and returns the content as a string
 // or returns an error.
 func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
-	out, err := f.baseURL.Parse(path)
+	u, err := f.baseURL.Parse(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse an URL: %w", err)
 	}
 
 	if f.retry != nil {
-		return f.fetchWithRetry(ctx, out)
+		return f.retry(ctx, func() (string, error) {
+			return f.fetch(ctx, u)
+		})
 	}
 
-	return f.fetch(ctx, out)
-}
-
-func (f *Fetcher) fetchWithRetry(ctx context.Context, u *url.URL) (string, error) {
-	for attempt := 0; ; attempt++ {
-		out, err := f.fetch(ctx, u)
-		if err != nil {
-			if attempt == f.retry.Attempts-1 {
-				return "", fmt.Errorf("failed to fetch after attempts=%d: %w", attempt+1, err)
-			}
-
-			delay := f.retry.Factor * time.Duration(attempt+1)
-			jitter := time.Duration(rand.Float64() * float64(f.retry.Factor))
-			delay = delay + jitter
-			if delay < f.retry.MinInterval {
-				delay = f.retry.MinInterval
-			}
-			if delay > f.retry.MaxInterval {
-				delay = f.retry.MaxInterval
-			}
-
-			select {
-			case <-time.After(delay):
-				continue
-			case <-ctx.Done():
-				return "", fmt.Errorf("failed to retry fetch, attempt=%ds: %w", attempt+1, ctx.Err())
-			}
-		}
-
-		return out, nil
-	}
+	return f.fetch(ctx, u)
 }
 
 func (f *Fetcher) fetch(ctx context.Context, u *url.URL) (string, error) {

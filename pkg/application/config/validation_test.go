@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 )
 
 func TestConfig_Validate(t *testing.T) {
@@ -282,6 +283,7 @@ func TestScrapersConfig_Validate(t *testing.T) {
 func TestScraperConfig_Validate(t *testing.T) {
 	type fields struct {
 		BaseURL string
+		Retry   RetryConfig
 	}
 	tests := []struct {
 		name    string
@@ -292,12 +294,34 @@ func TestScraperConfig_Validate(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				BaseURL: "https://test.com/",
+				Retry: RetryConfig{
+					Attempts:       1,
+					MinInterval:    1 * time.Second,
+					MaxInterval:    1 * time.Second,
+					Factor:         1.5,
+					MaxElapsedTime: 30 * time.Second,
+				},
 			},
 		},
 		{
 			name: "err  empty base url",
 			fields: fields{
 				BaseURL: "",
+				Retry: RetryConfig{
+					Attempts:       1,
+					MinInterval:    1 * time.Second,
+					MaxInterval:    1 * time.Second,
+					Factor:         1.5,
+					MaxElapsedTime: 30 * time.Second,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  invalid retry config",
+			fields: fields{
+				BaseURL: "https://test.com/",
+				Retry:   RetryConfig{},
 			},
 			wantErr: true,
 		},
@@ -306,9 +330,114 @@ func TestScraperConfig_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := ScraperConfig{
 				BaseURL: tt.fields.BaseURL,
+				Retry:   tt.fields.Retry,
 			}
 			if err := cfg.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("ScraperConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRetryConfig_Validate(t *testing.T) {
+	type fields struct {
+		Attempts       uint
+		MinInterval    time.Duration
+		MaxInterval    time.Duration
+		Factor         float64
+		MaxElapsedTime time.Duration
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			fields: fields{
+				Attempts:       3,
+				MinInterval:    1 * time.Second,
+				MaxInterval:    10 * time.Second,
+				Factor:         1.5,
+				MaxElapsedTime: 30 * time.Second,
+			},
+		},
+		{
+			name: "err  attempts is non-positive number",
+			fields: fields{
+				Attempts:       0,
+				MinInterval:    1 * time.Second,
+				MaxInterval:    6 * time.Second,
+				Factor:         1.5,
+				MaxElapsedTime: 30 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  min interval is non-positive number",
+			fields: fields{
+				Attempts:       3,
+				MinInterval:    0,
+				MaxInterval:    6 * time.Second,
+				Factor:         1.5,
+				MaxElapsedTime: 30 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  max interval is non-positive number",
+			fields: fields{
+				Attempts:       3,
+				MinInterval:    1 * time.Second,
+				MaxInterval:    0,
+				Factor:         1.5,
+				MaxElapsedTime: 30 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  min interval is greater than max interval",
+			fields: fields{
+				Attempts:    0,
+				MinInterval: 1 * time.Second,
+				MaxInterval: 6 * time.Second,
+				Factor:      1.5,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  factor is non-positive number",
+			fields: fields{
+				Attempts:       3,
+				MinInterval:    1 * time.Second,
+				MaxInterval:    6 * time.Second,
+				Factor:         0,
+				MaxElapsedTime: 30 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  max elapsed time is lower than min interval",
+			fields: fields{
+				Attempts:       3,
+				MinInterval:    1 * time.Second,
+				MaxInterval:    6 * time.Second,
+				Factor:         0,
+				MaxElapsedTime: 30 * time.Second,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := RetryConfig{
+				Attempts:    tt.fields.Attempts,
+				MinInterval: tt.fields.MinInterval,
+				MaxInterval: tt.fields.MaxInterval,
+				Factor:      tt.fields.Factor,
+			}
+			if err := cfg.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("RetryConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

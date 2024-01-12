@@ -22,7 +22,7 @@ type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-type retryFunc func(context.Context, func() (string, error)) (string, error)
+type retryFunc func(ctx context.Context, action func() (string, error)) (string, error)
 
 // New returns a pointer to the new instance of [Fetcher] or an error.
 func New(

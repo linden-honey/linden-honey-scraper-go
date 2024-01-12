@@ -88,30 +88,30 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 		return nil, fmt.Errorf("failed to get previews: %w", err)
 	}
 
-	sc := make(chan song.Song, len(ps))
-	errc := make(chan error, 1)
+	sCh := make(chan song.Song, len(ps))
+	errCh := make(chan error, 1)
 	for _, p := range ps {
-		go func(id string) {
-			s, err := scr.GetSong(ctx, id)
+		go func() {
+			s, err := scr.GetSong(ctx, p.ID)
 			if err != nil {
-				errc <- fmt.Errorf("failed to get a song with id=%s: %w", id, err)
+				errCh <- fmt.Errorf("failed to get a song with id=%s: %w", p.ID, err)
 				return
 			}
 
-			sc <- *s
-		}(p.ID)
+			sCh <- *s
+		}()
 	}
 
-	out := make([]song.Song, 0, len(ps))
+	out := make([]song.Song, 0)
 loop:
 	for {
 		select {
-		case s := <-sc:
+		case s := <-sCh:
 			out = append(out, s)
 			if len(out) == len(ps) {
 				break loop
 			}
-		case err := <-errc:
+		case err := <-errCh:
 			return nil, err
 		}
 	}

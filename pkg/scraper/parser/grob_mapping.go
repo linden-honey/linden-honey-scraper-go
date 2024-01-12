@@ -1,7 +1,7 @@
 package parser
 
 var (
-	grobArtistsAlbums = map[string][]string{
+	grobArtistAlbums = map[string][]string{
 		"Враг Народа": {
 			"Делай с нами,делай как мы,делай лучше нас",
 		},
@@ -83,7 +83,7 @@ var (
 		},
 	}
 
-	grobInvalidAlbums = map[string][]string{
+	grobAlbumInvalidVariants = map[string][]string{
 		"Армагеддон-попс": {
 			"Армегеддон-попс",
 		},

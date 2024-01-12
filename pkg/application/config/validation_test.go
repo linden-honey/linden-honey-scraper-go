@@ -257,6 +257,13 @@ func TestScrapersConfig_Validate(t *testing.T) {
 			fields: fields{
 				Grob: ScraperConfig{
 					BaseURL: "https://test.com/",
+					Retry: RetryConfig{
+						Attempts:       1,
+						MinInterval:    1 * time.Second,
+						MaxInterval:    1 * time.Second,
+						Factor:         1.5,
+						MaxElapsedTime: 30 * time.Second,
+					},
 				},
 			},
 		},

@@ -34,6 +34,13 @@ func TestConfig_Validate(t *testing.T) {
 				Scrapers: ScrapersConfig{
 					Grob: ScraperConfig{
 						BaseURL: "https://test.com/",
+						Retry: RetryConfig{
+							Attempts:       1,
+							MinInterval:    1 * time.Second,
+							MaxInterval:    1 * time.Second,
+							Factor:         1.5,
+							MaxElapsedTime: 30 * time.Second,
+						},
 					},
 				},
 			},
@@ -42,9 +49,23 @@ func TestConfig_Validate(t *testing.T) {
 			name: "err  invalid server",
 			fields: fields{
 				Server: ServerConfig{},
+				Health: HealthConfig{
+					Enabled: true,
+					Path:    "/health",
+				},
+				Spec: SpecConfig{
+					FilePath: "./api/openapi.json",
+				},
 				Scrapers: ScrapersConfig{
 					Grob: ScraperConfig{
 						BaseURL: "https://test.com/",
+						Retry: RetryConfig{
+							Attempts:       1,
+							MinInterval:    1 * time.Second,
+							MaxInterval:    1 * time.Second,
+							Factor:         1.5,
+							MaxElapsedTime: 30 * time.Second,
+						},
 					},
 				},
 			},
@@ -64,6 +85,13 @@ func TestConfig_Validate(t *testing.T) {
 				Scrapers: ScrapersConfig{
 					Grob: ScraperConfig{
 						BaseURL: "https://test.com/",
+						Retry: RetryConfig{
+							Attempts:       1,
+							MinInterval:    1 * time.Second,
+							MaxInterval:    1 * time.Second,
+							Factor:         1.5,
+							MaxElapsedTime: 30 * time.Second,
+						},
 					},
 				},
 			},
@@ -84,6 +112,13 @@ func TestConfig_Validate(t *testing.T) {
 				Scrapers: ScrapersConfig{
 					Grob: ScraperConfig{
 						BaseURL: "https://test.com/",
+						Retry: RetryConfig{
+							Attempts:       1,
+							MinInterval:    1 * time.Second,
+							MaxInterval:    1 * time.Second,
+							Factor:         1.5,
+							MaxElapsedTime: 30 * time.Second,
+						},
 					},
 				},
 			},
@@ -113,6 +148,8 @@ func TestConfig_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := Config{
 				Server:   tt.fields.Server,
+				Health: tt.fields.Health,
+				Spec: tt.fields.Spec,
 				Scrapers: tt.fields.Scrapers,
 			}
 			if err := cfg.Validate(); (err != nil) != tt.wantErr {

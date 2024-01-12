@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -135,12 +136,17 @@ func (scr *Scraper) GetPreviews(ctx context.Context) ([]song.Metadata, error) {
 		return nil, fmt.Errorf("failed to parse previews: %w", err)
 	}
 
+	errs := make([]error, 0)
 	for _, p := range out {
 		if scr.validation {
 			if err := p.Validate(); err != nil {
-				return nil, fmt.Errorf("failed to validate a preview with id=%s : %w", p.ID, err)
+				errs = append(errs, fmt.Errorf("failed to validate a preview with id=%s : %w", p.ID, err))
 			}
 		}
+	}
+
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("failed to validate previews: %w", errors.Join(errs...))
 	}
 
 	sort.Slice(out, func(i, j int) bool {

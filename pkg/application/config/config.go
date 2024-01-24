@@ -7,6 +7,9 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
+// TODO: mark required fields like this `env:"ENV_NAME,required"`
+// TODO: use `envPrefix:"PREFIX_"` and default env names
+
 // Config is a configuration object.
 type Config struct {
 	Server   ServerConfig
@@ -55,7 +58,8 @@ type RetryConfig struct {
 
 // New returns a pointer to the new instance of [Config] or an error.
 func New() (*Config, error) {
-	cfg := DefaultConfig
+	cfg := Default()
+
 	if err := env.Parse(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse env: %w", err)
 	}

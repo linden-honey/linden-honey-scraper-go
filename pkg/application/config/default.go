@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-var (
-	DefaultConfig = Config{
+func Default() Config {
+	return Config{
 		Server: ServerConfig{
 			Host: "localhost",
 			Port: 8080,
@@ -30,4 +30,4 @@ var (
 			},
 		},
 	}
-)
+}

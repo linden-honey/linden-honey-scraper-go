@@ -31,8 +31,8 @@ func newScrapers(cfg config.ScrapersConfig) (domain.Scrapers, error) {
 
 func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, error) {
 	f, err := fetcher.New(
-		&cfg.BaseURL,
-		charmap.Windows1251, // TODO: use from cfg
+		cfg.BaseURL,
+		fetcher.WithEncoding(charmap.Windows1251), // TODO: use from cfg
 		fetcherWithRetryOption(cfg.Retry),
 	)
 	if err != nil {

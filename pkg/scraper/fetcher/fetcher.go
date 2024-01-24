@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/encoding"
 )
 
 // Fetcher is an implementation of an eager content fetcher.
 type Fetcher struct {
-	baseURL  *url.URL
-	encoding *charmap.Charmap
+	baseURL  url.URL
 	client   httpClient
+	encoding encoding.Encoding
 	retry    retryFunc
 }
 
@@ -26,14 +26,12 @@ type retryFunc func(ctx context.Context, action func() (string, error)) (string,
 
 // New returns a pointer to the new instance of [Fetcher] or an error.
 func New(
-	baseURL *url.URL,
-	encoding *charmap.Charmap,
+	baseURL url.URL,
 	opts ...Option,
 ) (*Fetcher, error) {
 	f := &Fetcher{
-		baseURL:  baseURL,
-		encoding: encoding,
-		client:   new(http.Client),
+		baseURL: baseURL,
+		client:  new(http.Client),
 	}
 
 	for _, opt := range opts {
@@ -54,6 +52,13 @@ type Option func(*Fetcher)
 func WithClient(client httpClient) Option {
 	return func(f *Fetcher) {
 		f.client = client
+	}
+}
+
+// WithEncoding sets the encoding for the [Fetcher].
+func WithEncoding(encoding encoding.Encoding) Option {
+	return func(f *Fetcher) {
+		f.encoding = encoding
 	}
 }
 
@@ -95,12 +100,15 @@ func (f *Fetcher) fetch(ctx context.Context, u *url.URL) (string, error) {
 	if res.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("server did not respond successfully - status code %d", res.StatusCode)
 	}
-	defer func() {
-		_ = res.Body.Close()
-	}()
 
-	decoder := f.encoding.NewDecoder()
-	body, err := io.ReadAll(decoder.Reader(res.Body))
+	defer res.Body.Close()
+
+	var r io.Reader = res.Body
+	if f.encoding != nil {
+		r = f.encoding.NewDecoder().Reader(r)
+	}
+
+	body, err := io.ReadAll(r)
 	if err != nil {
 		return "", fmt.Errorf("failed to read a response: %w", err)
 	}

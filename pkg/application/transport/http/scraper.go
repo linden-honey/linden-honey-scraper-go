@@ -6,12 +6,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/song"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/scraper"
 	sdkhttp "github.com/linden-honey/linden-honey-sdk-go/transport/http"
 )
 
 // NewScraperHandler returns a new instance of [http.Handler].
-func NewScraperHandler(svc song.Service) http.Handler {
+func NewScraperHandler(svc scraper.Service) http.Handler {
 	r := chi.NewRouter()
 
 	r.Get("/", makeScraperGetSongsHandlerFunc(svc))
@@ -20,7 +20,7 @@ func NewScraperHandler(svc song.Service) http.Handler {
 	return r
 }
 
-func makeScraperGetSongsHandlerFunc(svc song.Service) http.HandlerFunc {
+func makeScraperGetSongsHandlerFunc(svc scraper.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		out, err := svc.GetSongs(r.Context())
 		if err != nil {
@@ -37,7 +37,7 @@ func makeScraperGetSongsHandlerFunc(svc song.Service) http.HandlerFunc {
 	}
 }
 
-func makeScraperGetSongsByScraperIDHandlerFunc(svc song.Service) http.HandlerFunc {
+func makeScraperGetSongsByScraperIDHandlerFunc(svc scraper.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		scrID := chi.URLParam(r, "scraperID")
 		out, err := svc.GetSongsByScraperID(r.Context(), scrID)

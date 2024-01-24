@@ -9,7 +9,7 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
-type SongService struct {
+type ScraperService struct {
 	scrapers map[string]scraper
 }
 
@@ -17,8 +17,8 @@ type scraper interface {
 	GetSongs(ctx context.Context) ([]song.Song, error)
 }
 
-func NewSongService(opts ...SongServiceOption) *SongService {
-	svc := &SongService{
+func NewScraperService(opts ...ScraperServiceOption) *ScraperService {
+	svc := &ScraperService{
 		scrapers: make(map[string]scraper),
 	}
 
@@ -29,10 +29,10 @@ func NewSongService(opts ...SongServiceOption) *SongService {
 	return svc
 }
 
-type SongServiceOption func(*SongService)
+type ScraperServiceOption func(*ScraperService)
 
-func SongServiceWithScraper(scrID string, scr scraper) SongServiceOption {
-	return func(svc *SongService) {
+func ScraperServiceWithScraper(scrID string, scr scraper) ScraperServiceOption {
+	return func(svc *ScraperService) {
 		if svc.scrapers == nil {
 			svc.scrapers = make(map[string]scraper)
 		}
@@ -42,7 +42,7 @@ func SongServiceWithScraper(scrID string, scr scraper) SongServiceOption {
 }
 
 // GetSongs scrapes all songs from multiple sources and returns a slice of [song.Song] instances or an error.
-func (svc *SongService) GetSongs(ctx context.Context) ([]song.Song, error) {
+func (svc *ScraperService) GetSongs(ctx context.Context) ([]song.Song, error) {
 	out := make([]song.Song, 0)
 	errs := make([]error, 0)
 	for scrID, scr := range svc.scrapers {
@@ -67,7 +67,7 @@ func (svc *SongService) GetSongs(ctx context.Context) ([]song.Song, error) {
 }
 
 // GetSongsByScraperID scrapes songs from the source returns a slice of [song.Song] instances or an error.
-func (svc *SongService) GetSongsByScraperID(ctx context.Context, scrID string) ([]song.Song, error) {
+func (svc *ScraperService) GetSongsByScraperID(ctx context.Context, scrID string) ([]song.Song, error) {
 	scr, ok := svc.scrapers[scrID]
 	if !ok {
 		return nil, fmt.Errorf("failed to resolve scraper by id=%s", scrID)

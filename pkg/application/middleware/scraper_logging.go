@@ -4,26 +4,26 @@ import (
 	"context"
 	"log/slog"
 
-	apisong "github.com/linden-honey/linden-honey-api-go/pkg/song"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/song"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/scraper"
 	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 )
 
-// SongLoggingMiddleware returns a new instance of [middleware.Middleware[song.Service]] with top-level logging.
-func SongLoggingMiddleware() middleware.Middleware[song.Service] {
-	return func(next song.Service) song.Service {
-		return &songLoggingMiddleware{
+// ScraperLoggingMiddleware returns a new instance of [middleware.Middleware[song.Service]] with top-level logging.
+func ScraperLoggingMiddleware() middleware.Middleware[scraper.Service] {
+	return func(next scraper.Service) scraper.Service {
+		return &scraperLoggingMiddleware{
 			next: next,
 		}
 	}
 }
 
-type songLoggingMiddleware struct {
-	next song.Service
+type scraperLoggingMiddleware struct {
+	next scraper.Service
 }
 
 // GetSongs wraps the [song.Service] call with logging attached.
-func (mw *songLoggingMiddleware) GetSongs(ctx context.Context) (out []apisong.Song, err error) {
+func (mw *scraperLoggingMiddleware) GetSongs(ctx context.Context) (out []song.Song, err error) {
 	slog.Info("getting songs")
 
 	defer func() {
@@ -38,7 +38,7 @@ func (mw *songLoggingMiddleware) GetSongs(ctx context.Context) (out []apisong.So
 }
 
 // GetSongsByScraperID wraps the [song.Service] call with logging attached.
-func (mw *songLoggingMiddleware) GetSongsByScraperID(ctx context.Context, scrID string) (out []apisong.Song, err error) {
+func (mw *scraperLoggingMiddleware) GetSongsByScraperID(ctx context.Context, scrID string) (out []song.Song, err error) {
 	slog.InfoContext(ctx, "getting songs by source id", "songs_scraper_id", scrID)
 
 	defer func() {

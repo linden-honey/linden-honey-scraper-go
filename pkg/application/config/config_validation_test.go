@@ -1,15 +1,13 @@
 package config
 
 import (
+	"net/url"
 	"testing"
 	"time"
 )
 
 func TestConfig_Validate(t *testing.T) {
 	type fields struct {
-		Server   ServerConfig
-		Health   HealthConfig
-		Spec     SpecConfig
 		Scrapers ScrapersConfig
 	}
 	tests := []struct {
@@ -20,20 +18,12 @@ func TestConfig_Validate(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				Server: ServerConfig{
-					Host: "localhost",
-					Port: 8080,
-				},
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
 				Scrapers: ScrapersConfig{
 					Grob: ScraperConfig{
-						BaseURL: "https://test.com/",
+						BaseURL: url.URL{
+							Scheme: "https",
+							Host:   "www.gr-oborona.ru",
+						},
 						Retry: RetryConfig{
 							Attempts:       1,
 							MinInterval:    1 * time.Second,
@@ -45,100 +35,9 @@ func TestConfig_Validate(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "err  invalid server",
-			fields: fields{
-				Server: ServerConfig{},
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
-				Scrapers: ScrapersConfig{
-					Grob: ScraperConfig{
-						BaseURL: "https://test.com/",
-						Retry: RetryConfig{
-							Attempts:       1,
-							MinInterval:    1 * time.Second,
-							MaxInterval:    1 * time.Second,
-							Factor:         1.5,
-							MaxElapsedTime: 30 * time.Second,
-						},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "err  invalid health",
-			fields: fields{
-				Server: ServerConfig{
-					Host: "localhost",
-					Port: 8080,
-				},
-				Health: HealthConfig{},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
-				Scrapers: ScrapersConfig{
-					Grob: ScraperConfig{
-						BaseURL: "https://test.com/",
-						Retry: RetryConfig{
-							Attempts:       1,
-							MinInterval:    1 * time.Second,
-							MaxInterval:    1 * time.Second,
-							Factor:         1.5,
-							MaxElapsedTime: 30 * time.Second,
-						},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "err  invalid spec",
-			fields: fields{
-				Server: ServerConfig{
-					Host: "localhost",
-					Port: 8080,
-				},
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{},
-				Scrapers: ScrapersConfig{
-					Grob: ScraperConfig{
-						BaseURL: "https://test.com/",
-						Retry: RetryConfig{
-							Attempts:       1,
-							MinInterval:    1 * time.Second,
-							MaxInterval:    1 * time.Second,
-							Factor:         1.5,
-							MaxElapsedTime: 30 * time.Second,
-						},
-					},
-				},
-			},
-			wantErr: true,
-		},
-
 		{
 			name: "err  invalid scrapers",
 			fields: fields{
-				Server: ServerConfig{
-					Host: "localhost",
-					Port: 8080,
-				},
-				Health: HealthConfig{
-					Enabled: true,
-					Path:    "/health",
-				},
-				Spec: SpecConfig{
-					FilePath: "./api/openapi.json",
-				},
 				Scrapers: ScrapersConfig{},
 			},
 			wantErr: true,
@@ -147,134 +46,10 @@ func TestConfig_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := Config{
-				Server:   tt.fields.Server,
-				Health: tt.fields.Health,
-				Spec: tt.fields.Spec,
 				Scrapers: tt.fields.Scrapers,
 			}
 			if err := cfg.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestServerConfig_Validate(t *testing.T) {
-	type fields struct {
-		Host string
-		Port int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
-	}{
-		{
-			name: "ok",
-			fields: fields{
-				Host: "localhost",
-				Port: 8080,
-			},
-		},
-		{
-			name: "err  empty host",
-			fields: fields{
-				Host: "",
-				Port: 8080,
-			},
-			wantErr: true,
-		},
-		{
-			name: "err  invalid port",
-			fields: fields{
-				Host: "localhost",
-				Port: 0,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := ServerConfig{
-				Host: tt.fields.Host,
-				Port: tt.fields.Port,
-			}
-			if err := cfg.Validate(); (err != nil) != tt.wantErr {
-				t.Errorf("ServerConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestHealthConfig_Validate(t *testing.T) {
-	type fields struct {
-		Enabled bool
-		Path    string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
-	}{
-		{
-			name: "ok",
-			fields: fields{
-				Enabled: true,
-				Path:    "/health",
-			},
-		},
-		{
-			name: "err  empty path",
-			fields: fields{
-				Enabled: true,
-				Path:    "",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := HealthConfig{
-				Enabled: tt.fields.Enabled,
-				Path:    tt.fields.Path,
-			}
-			if err := cfg.Validate(); (err != nil) != tt.wantErr {
-				t.Errorf("HealthConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestSpecConfig_Validate(t *testing.T) {
-	type fields struct {
-		FilePath string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
-	}{
-		{
-			name: "ok",
-			fields: fields{
-				FilePath: "./api/openapi.json",
-			},
-		},
-		{
-			name: "err  empty file path",
-			fields: fields{
-				FilePath: "",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := SpecConfig{
-				FilePath: tt.fields.FilePath,
-			}
-			if err := cfg.Validate(); (err != nil) != tt.wantErr {
-				t.Errorf("SpecConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -293,7 +68,10 @@ func TestScrapersConfig_Validate(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				Grob: ScraperConfig{
-					BaseURL: "https://test.com/",
+					BaseURL: url.URL{
+						Scheme: "https",
+						Host:   "www.gr-oborona.ru",
+					},
 					Retry: RetryConfig{
 						Attempts:       1,
 						MinInterval:    1 * time.Second,
@@ -326,7 +104,7 @@ func TestScrapersConfig_Validate(t *testing.T) {
 
 func TestScraperConfig_Validate(t *testing.T) {
 	type fields struct {
-		BaseURL string
+		BaseURL url.URL
 		Retry   RetryConfig
 	}
 	tests := []struct {
@@ -337,7 +115,10 @@ func TestScraperConfig_Validate(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				BaseURL: "https://test.com/",
+				BaseURL: url.URL{
+					Scheme: "https",
+					Host:   "www.gr-oborona.ru",
+				},
 				Retry: RetryConfig{
 					Attempts:       1,
 					MinInterval:    1 * time.Second,
@@ -350,7 +131,10 @@ func TestScraperConfig_Validate(t *testing.T) {
 		{
 			name: "err  empty base url",
 			fields: fields{
-				BaseURL: "",
+				BaseURL: url.URL{
+					Scheme: "https",
+					Host:   "www.gr-oborona.ru",
+				},
 				Retry: RetryConfig{
 					Attempts:       1,
 					MinInterval:    1 * time.Second,
@@ -364,8 +148,11 @@ func TestScraperConfig_Validate(t *testing.T) {
 		{
 			name: "err  invalid retry config",
 			fields: fields{
-				BaseURL: "https://test.com/",
-				Retry:   RetryConfig{},
+				BaseURL: url.URL{
+					Scheme: "https",
+					Host:   "www.gr-oborona.ru",
+				},
+				Retry: RetryConfig{},
 			},
 			wantErr: true,
 		},

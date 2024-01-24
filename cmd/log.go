@@ -1,11 +1,11 @@
-package main
+package cmd
 
 import (
 	"log/slog"
 	"os"
 )
 
-func initLogger() {
+func InitLogger() {
 	l := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
@@ -13,11 +13,11 @@ func initLogger() {
 	slog.SetDefault(l)
 }
 
-func warn(err error) {
+func Warn(err error) {
 	slog.Warn(err.Error())
 }
 
-func fatal(err error) {
+func Fatal(err error) {
 	slog.Error(err.Error())
 	os.Exit(1)
 }

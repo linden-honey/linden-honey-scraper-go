@@ -1,25 +1,18 @@
 package config
 
 import (
+	"net/url"
 	"time"
 )
 
 func Default() Config {
 	return Config{
-		Server: ServerConfig{
-			Host: "localhost",
-			Port: 8080,
-		},
-		Health: HealthConfig{
-			Enabled: true,
-			Path:    "/health",
-		},
-		Spec: SpecConfig{
-			FilePath: "./api/openapi.json",
-		},
 		Scrapers: ScrapersConfig{
 			Grob: ScraperConfig{
-				BaseURL: "https://www.gr-oborona.ru/",
+				BaseURL: url.URL{
+					Scheme: "https",
+					Host:   "www.gr-oborona.ru",
+				},
 				Retry: RetryConfig{
 					Attempts:       5,
 					MinInterval:    2 * time.Second,

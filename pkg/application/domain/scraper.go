@@ -4,23 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"sort"
 
 	"github.com/linden-honey/linden-honey-api-go/pkg/song"
 )
 
 type ScraperService struct {
-	scrapers map[string]scraper
+	scrapers Scrapers
 }
 
-type scraper interface {
+type Scrapers map[string]Scraper
+
+type Scraper interface {
 	GetSongs(ctx context.Context) ([]song.Song, error)
 }
 
-func NewScraperService(opts ...ScraperServiceOption) *ScraperService {
+func NewScraperService(scrapers Scrapers, opts ...ScraperServiceOption) *ScraperService {
 	svc := &ScraperService{
-		scrapers: make(map[string]scraper),
+		scrapers: make(Scrapers),
 	}
+
+	maps.Copy(svc.scrapers, scrapers)
 
 	for _, opt := range opts {
 		opt(svc)
@@ -30,16 +35,6 @@ func NewScraperService(opts ...ScraperServiceOption) *ScraperService {
 }
 
 type ScraperServiceOption func(*ScraperService)
-
-func ScraperServiceWithScraper(scrID string, scr scraper) ScraperServiceOption {
-	return func(svc *ScraperService) {
-		if svc.scrapers == nil {
-			svc.scrapers = make(map[string]scraper)
-		}
-
-		svc.scrapers[scrID] = scr
-	}
-}
 
 // GetSongs scrapes all songs from multiple sources and returns a slice of [song.Song] instances or an error.
 func (svc *ScraperService) GetSongs(ctx context.Context) ([]song.Song, error) {

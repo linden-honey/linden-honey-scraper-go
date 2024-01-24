@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/caarlos0/env/v6"
@@ -12,27 +13,7 @@ import (
 
 // Config is a configuration object.
 type Config struct {
-	Server   ServerConfig
-	Health   HealthConfig
-	Spec     SpecConfig
 	Scrapers ScrapersConfig
-}
-
-// ServerConfig is a configuration object.
-type ServerConfig struct {
-	Host string `env:"SERVER_HOST"`
-	Port int    `env:"SERVER_PORT"`
-}
-
-// HealthConfig is a configuration object.
-type HealthConfig struct {
-	Enabled bool   `env:"HEALTH_ENABLED"`
-	Path    string `env:"HEALTH_PATH"`
-}
-
-// SpecConfig is a configuration object.
-type SpecConfig struct {
-	FilePath string `env:"SPEC_FILE_PATH"`
 }
 
 // ScrapersConfig is a configuration object.
@@ -42,7 +23,7 @@ type ScrapersConfig struct {
 
 // ScraperConfig is a configuration object.
 type ScraperConfig struct {
-	BaseURL string `env:"SCRAPER_BASE_URL"`
+	BaseURL url.URL `env:"SCRAPER_BASE_URL"`
 	Retry   RetryConfig
 }
 

@@ -54,7 +54,7 @@ func main() {
 
 		svc = domain.NewScraperService(scrapers)
 		svc = sdkmiddleware.Compose(
-			middleware.ScraperLoggingMiddleware(),
+			middleware.ScraperServiceLoggingMiddleware(),
 		)(svc)
 	}
 

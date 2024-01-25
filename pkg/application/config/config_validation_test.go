@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"testing"
 	"time"
+
+	"golang.org/x/text/encoding"
 )
 
 func TestConfig_Validate(t *testing.T) {
@@ -104,8 +106,10 @@ func TestScrapersConfig_Validate(t *testing.T) {
 
 func TestScraperConfig_Validate(t *testing.T) {
 	type fields struct {
-		BaseURL url.URL
-		Retry   RetryConfig
+		BaseURL    url.URL
+		Encoding   encoding.Encoding
+		Validation bool
+		Retry      RetryConfig
 	}
 	tests := []struct {
 		name    string
@@ -131,10 +135,7 @@ func TestScraperConfig_Validate(t *testing.T) {
 		{
 			name: "err  empty base url",
 			fields: fields{
-				BaseURL: url.URL{
-					Scheme: "https",
-					Host:   "www.gr-oborona.ru",
-				},
+				BaseURL: url.URL{},
 				Retry: RetryConfig{
 					Attempts:       1,
 					MinInterval:    1 * time.Second,
@@ -160,8 +161,10 @@ func TestScraperConfig_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := ScraperConfig{
-				BaseURL: tt.fields.BaseURL,
-				Retry:   tt.fields.Retry,
+				BaseURL:    tt.fields.BaseURL,
+				Encoding:   tt.fields.Encoding,
+				Validation: tt.fields.Validation,
+				Retry:      tt.fields.Retry,
 			}
 			if err := cfg.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("ScraperConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)

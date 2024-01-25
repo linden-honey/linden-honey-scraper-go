@@ -3,13 +3,13 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"reflect"
 	"time"
+
+	"golang.org/x/text/encoding"
 
 	"github.com/caarlos0/env/v6"
 )
-
-// TODO: mark required fields like this `env:"ENV_NAME,required"`
-// TODO: use `envPrefix:"PREFIX_"` and default env names
 
 // Config is a configuration object.
 type Config struct {
@@ -23,8 +23,10 @@ type ScrapersConfig struct {
 
 // ScraperConfig is a configuration object.
 type ScraperConfig struct {
-	BaseURL url.URL `env:"SCRAPER_BASE_URL"`
-	Retry   RetryConfig
+	BaseURL    url.URL           `env:"SCRAPER_BASE_URL"`
+	Encoding   encoding.Encoding `env:"SCRAPER_ENCODING"`
+	Validation bool              `env:"SCRAPER_VALIDATION"`
+	Retry      RetryConfig       `envPrefix:"SCRAPER_"`
 }
 
 // RetryConfig is a configuration object.
@@ -41,7 +43,11 @@ type RetryConfig struct {
 func New() (*Config, error) {
 	cfg := Default()
 
-	if err := env.Parse(&cfg); err != nil {
+	fmt.Println(reflect.TypeOf((*encoding.Encoding)(nil)).Elem())
+
+	if err := env.ParseWithFuncs(&cfg, Parsers(), env.Options{
+		Prefix: "APPLICATION_",
+	}); err != nil {
 		return nil, fmt.Errorf("failed to parse env: %w", err)
 	}
 

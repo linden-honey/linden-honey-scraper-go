@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/cenkalti/backoff/v4"
-	"golang.org/x/text/encoding/charmap"
 
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain"
@@ -32,8 +31,8 @@ func newScrapers(cfg config.ScrapersConfig) (domain.Scrapers, error) {
 func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, error) {
 	f, err := fetcher.New(
 		cfg.BaseURL,
-		fetcher.WithEncoding(charmap.Windows1251), // TODO: use from cfg
-		fetcherWithRetryOption(cfg.Retry),
+		fetcher.WithEncoding(cfg.Encoding),
+		fetcherWithRetry(cfg.Retry),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize a fetcher: %w", err)
@@ -42,11 +41,11 @@ func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, e
 	return scraper.New(
 		f,
 		p,
-		scraper.WithValidation(true), // TODO: use from cfg
+		scraper.WithValidation(cfg.Validation),
 	)
 }
 
-func fetcherWithRetryOption(cfg config.RetryConfig) fetcher.Option {
+func fetcherWithRetry(cfg config.RetryConfig) fetcher.Option {
 	if !cfg.Enabled {
 		return fetcher.WithRetry(nil)
 	}

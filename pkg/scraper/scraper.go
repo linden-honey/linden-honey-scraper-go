@@ -59,29 +59,6 @@ func WithValidation(validation bool) Option {
 	}
 }
 
-// GetSong scrapes a song by id and returns a pointer to the new instance of [song.Entity] or an error.
-func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Entity, error) {
-	data, err := scr.fetcher.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch data: %w", err)
-	}
-
-	out, err := scr.parser.ParseSong(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse a song: %w", err)
-	}
-
-	out.ID = id // backfill ID
-
-	if scr.validation {
-		if err := out.Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate a song: %w", err)
-		}
-	}
-
-	return out, nil
-}
-
 // GetSongs scrapes all songs and returns a slice of [song.Entity] instances or an error.
 func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Entity, error) {
 	ps, err := scr.GetPreviews(ctx)
@@ -120,6 +97,29 @@ loop:
 	sort.Slice(out, func(i, j int) bool {
 		return out[i].Title < out[j].Title
 	})
+
+	return out, nil
+}
+
+// GetSong scrapes a song by id and returns a pointer to the new instance of [song.Entity] or an error.
+func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Entity, error) {
+	data, err := scr.fetcher.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch data: %w", err)
+	}
+
+	out, err := scr.parser.ParseSong(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse a song: %w", err)
+	}
+
+	out.ID = id // backfill ID
+
+	if scr.validation {
+		if err := out.Validate(); err != nil {
+			return nil, fmt.Errorf("failed to validate a song: %w", err)
+		}
+	}
 
 	return out, nil
 }

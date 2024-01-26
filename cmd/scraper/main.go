@@ -5,16 +5,11 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/signal"
-	"syscall"
-
-	sdkmiddleware "github.com/linden-honey/linden-honey-sdk-go/middleware"
 
 	"github.com/linden-honey/linden-honey-scraper-go/cmd"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/scraper"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/middleware"
 )
 
 func main() {
@@ -53,25 +48,14 @@ func main() {
 		}
 
 		svc = domain.NewScraperService(scrapers)
-		svc = sdkmiddleware.Compose(
-			middleware.ScraperServiceLoggingMiddleware(),
-		)(svc)
 	}
 
 	{
-		// TODO: initialize some transport here (s3, localfs, etc)
-		_ = svc
-		_ = ctx
+		slog.Info("scraping songs")
+		if err := svc.ScrapeSongs(ctx, os.Stdout); err != nil {
+			cmd.Fatal(fmt.Errorf("failed to scrape songs: %w", err))
+		}
 	}
 
-	errc := make(chan error, 1)
-
-	go func() {
-		sigc := make(chan os.Signal, 1)
-		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
-		errc <- fmt.Errorf("%s", <-sigc)
-	}()
-
-	slog.Info("application started")
-	slog.Info("application stopped", "exit", <-errc)
+	slog.Info("successfully finished")
 }

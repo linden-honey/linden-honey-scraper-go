@@ -2,12 +2,10 @@ package scraper
 
 import (
 	"context"
-
-	"github.com/linden-honey/linden-honey-api-go/pkg/song"
+	"io"
 )
 
-// Service is an interface of song use-cases.
+// Service is an interface of scraper use-cases.
 type Service interface {
-	GetSongs(ctx context.Context) ([]song.Song, error)
-	GetSongsByScraperID(ctx context.Context, scrID string) ([]song.Song, error)
+	ScrapeSongs(ctx context.Context, w io.Writer) error
 }

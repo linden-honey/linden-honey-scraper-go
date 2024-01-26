@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/linden-honey/linden-honey-scraper-go/cmd"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
@@ -51,6 +52,10 @@ func main() {
 	}
 
 	{
+		if err := os.MkdirAll(filepath.Dir(cfg.Output.FileName), os.ModePerm); err != nil {
+			cmd.Fatal(fmt.Errorf("failed to create output file: %w", err))
+		}
+
 		f, err := os.Create(cfg.Output.FileName)
 		if err != nil {
 			cmd.Fatal(fmt.Errorf("failed to create output file: %w", err))

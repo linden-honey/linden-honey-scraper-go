@@ -11,11 +11,6 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go install -v -ldflags="-w -s" ./cmd/.
 
 FROM alpine:3.19
 
-COPY --from=builder /go/bin/server /bin/server
-COPY api/ ./api
+COPY --from=builder /go/bin/server /bin/scraper
 
-ENV SERVER_HOST="0.0.0.0" \
-    SERVER_PORT="80"
-EXPOSE $SERVER_PORT
-
-ENTRYPOINT [ "/bin/server" ]
+ENTRYPOINT [ "/bin/scraper" ]

@@ -4,5 +4,3 @@ services:
   app:
     image: lindenhoney/linden-honey-scraper-go:latest
     build: .
-    ports:
-      - 8080:80

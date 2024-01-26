@@ -61,8 +61,13 @@ func fetcherWithRetry(cfg config.RetryConfig) fetcher.Option {
 			backoff.WithContext(
 				backoff.WithMaxRetries(
 					&backoff.ExponentialBackOff{
-						InitialInterval: cfg.MinInterval,
-						MaxInterval:     cfg.MaxInterval,
+						InitialInterval:     cfg.MinInterval,
+						RandomizationFactor: backoff.DefaultRandomizationFactor,
+						Multiplier:          backoff.DefaultMultiplier,
+						MaxInterval:         cfg.MaxInterval,
+						MaxElapsedTime:      backoff.DefaultMaxElapsedTime,
+						Stop:                backoff.Stop,
+						Clock:               backoff.SystemClock,
 					},
 					uint64(cfg.Attempts),
 				),

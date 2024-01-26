@@ -82,8 +82,11 @@ func (svc *ScraperService) getSongs(ctx context.Context) ([]song.Entity, error) 
 func ScraperLoggingMiddleware(scrID string) middleware.Middleware[Scraper] {
 	return func(next Scraper) Scraper {
 		return &scraperLoggingMiddleware{
-			logger: slog.With("scraper_id", scrID),
-			next:   next,
+			logger: slog.With(
+				"component", "scraper",
+				"scraper_id", scrID,
+			),
+			next: next,
 		}
 	}
 }

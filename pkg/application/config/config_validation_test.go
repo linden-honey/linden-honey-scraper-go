@@ -37,7 +37,7 @@ func TestConfig_Validate(t *testing.T) {
 					},
 				},
 				Output: OutputConfig{
-					FileName: "./songs.json",
+					FileName: "./out/songs.json",
 				},
 			},
 		},
@@ -46,7 +46,7 @@ func TestConfig_Validate(t *testing.T) {
 			fields: fields{
 				Scrapers: ScrapersConfig{},
 				Output: OutputConfig{
-					FileName: "./songs.json",
+					FileName: "./out/songs.json",
 				},
 			},
 			wantErr: true,
@@ -56,7 +56,7 @@ func TestConfig_Validate(t *testing.T) {
 			fields: fields{
 				Scrapers: ScrapersConfig{},
 				Output: OutputConfig{
-					FileName: "./songs.json",
+					FileName: "./out/songs.json",
 				},
 			},
 			wantErr: true,

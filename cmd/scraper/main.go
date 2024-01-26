@@ -51,8 +51,14 @@ func main() {
 	}
 
 	{
+		f, err := os.Create(cfg.Output.FileName)
+		if err != nil {
+			cmd.Fatal(fmt.Errorf("failed to create output file: %w", err))
+		}
+		defer f.Close()
+
 		slog.Info("scraping songs")
-		if err := svc.ScrapeSongs(ctx, os.Stdout); err != nil {
+		if err := svc.ScrapeSongs(ctx, f); err != nil {
 			cmd.Fatal(fmt.Errorf("failed to scrape songs: %w", err))
 		}
 	}

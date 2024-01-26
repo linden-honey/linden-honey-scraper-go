@@ -12,6 +12,10 @@ func (cfg Config) Validate() error {
 		return sdkerrors.NewInvalidValueError("Scrapers", err)
 	}
 
+	if err := cfg.Output.Validate(); err != nil {
+		return sdkerrors.NewInvalidValueError("Output", err)
+	}
+
 	return nil
 }
 
@@ -32,6 +36,15 @@ func (cfg ScraperConfig) Validate() error {
 
 	if err := cfg.Retry.Validate(); err != nil {
 		return sdkerrors.NewInvalidValueError("Retry", err)
+	}
+
+	return nil
+}
+
+// Validate validates a [ScraperConfig] and returns an error if validation is failed.
+func (cfg OutputConfig) Validate() error {
+	if cfg.FileName == "" {
+		return sdkerrors.NewInvalidValueError("FileName", sdkerrors.ErrEmptyValue)
 	}
 
 	return nil

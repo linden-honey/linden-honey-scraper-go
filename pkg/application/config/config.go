@@ -14,6 +14,7 @@ import (
 // Config is a configuration object.
 type Config struct {
 	Scrapers ScrapersConfig
+	Output   OutputConfig
 }
 
 // ScrapersConfig is a configuration object.
@@ -27,6 +28,10 @@ type ScraperConfig struct {
 	Encoding   encoding.Encoding `env:"SCRAPER_ENCODING"`
 	Validation bool              `env:"SCRAPER_VALIDATION"`
 	Retry      RetryConfig       `envPrefix:"SCRAPER_"`
+}
+
+type OutputConfig struct {
+	FileName string `env:"OUTPUT_FILE_NAME"`
 }
 
 // RetryConfig is a configuration object.

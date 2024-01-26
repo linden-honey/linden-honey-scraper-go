@@ -11,6 +11,7 @@ import (
 func TestConfig_Validate(t *testing.T) {
 	type fields struct {
 		Scrapers ScrapersConfig
+		Output   OutputConfig
 	}
 	tests := []struct {
 		name    string
@@ -35,12 +36,28 @@ func TestConfig_Validate(t *testing.T) {
 						},
 					},
 				},
+				Output: OutputConfig{
+					FileName: "./songs.json",
+				},
 			},
 		},
 		{
 			name: "err  invalid scrapers",
 			fields: fields{
 				Scrapers: ScrapersConfig{},
+				Output: OutputConfig{
+					FileName: "./songs.json",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "err  invalid output",
+			fields: fields{
+				Scrapers: ScrapersConfig{},
+				Output: OutputConfig{
+					FileName: "./songs.json",
+				},
 			},
 			wantErr: true,
 		},
@@ -49,6 +66,7 @@ func TestConfig_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := Config{
 				Scrapers: tt.fields.Scrapers,
+				Output:   tt.fields.Output,
 			}
 			if err := cfg.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Validate() error = %v, wantErr %v", err, tt.wantErr)

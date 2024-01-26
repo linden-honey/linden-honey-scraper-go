@@ -26,5 +26,8 @@ func Default() Config {
 				},
 			},
 		},
+		Output: OutputConfig{
+			FileName: "./songs.json",
+		},
 	}
 }

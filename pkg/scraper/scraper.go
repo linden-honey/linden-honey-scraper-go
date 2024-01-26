@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/linden-honey/linden-honey-api-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/application/domain/song"
 )
 
 // Scraper is an implementation of a songs scraper from some source.
@@ -23,7 +23,7 @@ type Fetcher interface {
 
 // Parser is a component for parsing content into domain types.
 type Parser interface {
-	ParseSong(input string) (*song.Song, error)
+	ParseSong(input string) (*song.Entity, error)
 	ParsePreviews(input string) ([]song.Metadata, error)
 }
 
@@ -59,8 +59,8 @@ func WithValidation(validation bool) Option {
 	}
 }
 
-// GetSong scrapes a song by id and returns a pointer to the new instance of [song.Song] or an error.
-func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) {
+// GetSong scrapes a song by id and returns a pointer to the new instance of [song.Entity] or an error.
+func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Entity, error) {
 	data, err := scr.fetcher.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
@@ -82,14 +82,14 @@ func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Song, error) 
 	return out, nil
 }
 
-// GetSongs scrapes all songs and returns a slice of [song.Song] instances or an error.
-func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
+// GetSongs scrapes all songs and returns a slice of [song.Entity] instances or an error.
+func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Entity, error) {
 	ps, err := scr.GetPreviews(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get previews: %w", err)
 	}
 
-	sCh := make(chan song.Song, len(ps))
+	sCh := make(chan song.Entity, len(ps))
 	errCh := make(chan error, 1)
 	for _, p := range ps {
 		go func(id string) {
@@ -103,7 +103,7 @@ func (scr *Scraper) GetSongs(ctx context.Context) ([]song.Song, error) {
 		}(p.ID)
 	}
 
-	out := make([]song.Song, 0)
+	out := make([]song.Entity, 0)
 loop:
 	for {
 		select {

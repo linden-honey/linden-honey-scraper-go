@@ -7,7 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/linden-honey/linden-honey-api-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/application/domain/song"
 )
 
 // GrobParser is the implementation of a song parser for the site gr-oborona.ru.
@@ -19,8 +19,8 @@ func NewGrobParser() *GrobParser {
 	return &GrobParser{}
 }
 
-// ParseSong parses the input html and returns a pointer to the new instance of [song.Song] or an error.
-func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
+// ParseSong parses the input html and returns a pointer to the new instance of [song.Entity] or an error.
+func (p *GrobParser) ParseSong(input string) (*song.Entity, error) {
 	document, err := p.parseHTML(input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
@@ -38,7 +38,7 @@ func (p *GrobParser) ParseSong(input string) (*song.Song, error) {
 		return nil, fmt.Errorf("failed to parse lyrics: %w", err)
 	}
 
-	return &song.Song{
+	return &song.Entity{
 		Metadata: song.Metadata{
 			Title: title,
 			Tags:  tags,

@@ -10,7 +10,7 @@ import (
 	"maps"
 	"sort"
 
-	"github.com/linden-honey/linden-honey-api-go/pkg/song"
+	"github.com/linden-honey/linden-honey-api-go/pkg/application/domain/song"
 	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 )
 
@@ -21,7 +21,7 @@ type ScraperService struct {
 type Scrapers map[string]Scraper
 
 type Scraper interface {
-	GetSongs(ctx context.Context) ([]song.Song, error)
+	GetSongs(ctx context.Context) ([]song.Entity, error)
 }
 
 func NewScraperService(scrapers Scrapers, opts ...ScraperServiceOption) *ScraperService {
@@ -54,8 +54,8 @@ func (svc *ScraperService) ScrapeSongs(ctx context.Context, w io.Writer) error {
 	return nil
 }
 
-func (svc *ScraperService) getSongs(ctx context.Context) ([]song.Song, error) {
-	out := make([]song.Song, 0)
+func (svc *ScraperService) getSongs(ctx context.Context) ([]song.Entity, error) {
+	out := make([]song.Entity, 0)
 	errs := make([]error, 0)
 	for scrID, scr := range svc.scrapers {
 		ss, err := scr.GetSongs(ctx)
@@ -94,7 +94,7 @@ type scraperLoggingMiddleware struct {
 }
 
 // GetSongs wraps the [song.Service] call with logging attached.
-func (mw *scraperLoggingMiddleware) GetSongs(ctx context.Context) (out []song.Song, err error) {
+func (mw *scraperLoggingMiddleware) GetSongs(ctx context.Context) (out []song.Entity, err error) {
 	mw.logger.InfoContext(ctx, "getting songs")
 
 	defer func() {

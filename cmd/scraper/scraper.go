@@ -11,23 +11,18 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/fetcher"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
-	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 )
 
 func newScrapers(cfg config.ScrapersConfig) (domain.Scrapers, error) {
 	out := make(domain.Scrapers)
 
 	{
-
 		scr, err := newScraper(cfg.Grob, parser.NewGrobParser())
 		if err != nil {
 			return nil, fmt.Errorf("failed to init grob scraper: %w", err)
 		}
 
-		scrID := "grob"
-		out[scrID] = middleware.Compose(
-			domain.ScraperLoggingMiddleware(scrID),
-		)(scr)
+		out["grob"] = scr
 	}
 
 	return out, nil

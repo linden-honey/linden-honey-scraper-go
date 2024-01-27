@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
-	"path/filepath"
 
 	"github.com/linden-honey/linden-honey-scraper-go/cmd"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain"
-	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/scraper"
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/flow"
 )
 
 func main() {
@@ -41,30 +39,24 @@ func main() {
 
 	slog.Info("initializing services")
 
-	var svc scraper.Service
+	// TODO: think about initialization of services (single variable or multiple)
+	var svc flow.Service
 	{
 		scrapers, err := newScrapers(cfg.Scrapers)
 		if err != nil {
 			cmd.Fatal(fmt.Errorf("failed to init scrapers: %w", err))
 		}
 
-		svc = domain.NewScraperService(scrapers)
+		svc = domain.NewFlowService(
+			domain.NewScraperService(scrapers),
+			domain.NewLocalPublisherService(cfg.Output.FileName),
+		)
 	}
 
 	{
-		if err := os.MkdirAll(filepath.Dir(cfg.Output.FileName), os.ModePerm); err != nil {
-			cmd.Fatal(fmt.Errorf("failed to create output file: %w", err))
-		}
-
-		f, err := os.Create(cfg.Output.FileName)
-		if err != nil {
-			cmd.Fatal(fmt.Errorf("failed to create output file: %w", err))
-		}
-		defer f.Close()
-
-		slog.Info("scraping songs")
-		if err := svc.ScrapeSongs(ctx, f); err != nil {
-			cmd.Fatal(fmt.Errorf("failed to scrape songs: %w", err))
+		slog.Info("running flow")
+		if err := svc.Run(ctx); err != nil {
+			cmd.Fatal(fmt.Errorf("failed to run flow: %w", err))
 		}
 	}
 

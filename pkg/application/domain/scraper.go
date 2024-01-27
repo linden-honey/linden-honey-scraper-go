@@ -11,11 +11,11 @@ import (
 	"sort"
 
 	"github.com/linden-honey/linden-honey-api-go/pkg/application/domain/song"
-	"github.com/linden-honey/linden-honey-sdk-go/middleware"
 )
 
 type ScraperService struct {
 	scrapers Scrapers
+	logger   *slog.Logger
 }
 
 type Scrapers map[string]Scraper
@@ -27,6 +27,7 @@ type Scraper interface {
 func NewScraperService(scrapers Scrapers, opts ...ScraperServiceOption) *ScraperService {
 	svc := &ScraperService{
 		scrapers: make(Scrapers),
+		logger:   slog.With("component", "scraper"),
 	}
 
 	maps.Copy(svc.scrapers, scrapers)
@@ -40,8 +41,8 @@ func NewScraperService(scrapers Scrapers, opts ...ScraperServiceOption) *Scraper
 
 type ScraperServiceOption func(*ScraperService)
 
-// ScrapeSongs gets all the songs from multiple sources and writes them in json format to [io.Writer].
-func (svc *ScraperService) ScrapeSongs(ctx context.Context, out io.Writer) error {
+// Scrape gets all the songs from multiple sources and writes them in json format to [io.Writer].
+func (svc *ScraperService) Scrape(ctx context.Context, out io.Writer) error {
 	songs, err := svc.getSongs(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get songs: %w", err)
@@ -58,55 +59,28 @@ func (svc *ScraperService) getSongs(ctx context.Context) ([]song.Entity, error) 
 	out := make([]song.Entity, 0)
 	errs := make([]error, 0)
 	for scrID, scr := range svc.scrapers {
-		ss, err := scr.GetSongs(ctx)
+		svc.logger.InfoContext(ctx, "getting songs", "scraper_id", scrID)
+
+		songs, err := scr.GetSongs(ctx)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("failed to get songs from scraper with id=%s: %w", scrID, err))
+			errs = append(errs, fmt.Errorf("failed to get songs from the scraper with id=%s: %w", scrID, err))
 			continue
 		}
 
-		out = append(out, ss...)
+		svc.logger.InfoContext(ctx, "songs successfully received", "scraper_id", scrID, "songs_count", len(songs))
+
+		out = append(out, songs...)
 	}
 
 	if len(errs) != 0 {
 		return nil, errors.Join(errs...)
 	}
 
+	svc.logger.InfoContext(ctx, "all songs successfully received", "songs_count", len(out))
+
 	sort.Slice(out, func(i, j int) bool {
 		return out[i].Title < out[j].Title
 	})
 
 	return out, nil
-}
-
-// ScraperLoggingMiddleware returns a new instance of [middleware.Middleware[Scraper]] with top-level logging.
-func ScraperLoggingMiddleware(scrID string) middleware.Middleware[Scraper] {
-	return func(next Scraper) Scraper {
-		return &scraperLoggingMiddleware{
-			logger: slog.With(
-				"component", "scraper",
-				"scraper_id", scrID,
-			),
-			next: next,
-		}
-	}
-}
-
-type scraperLoggingMiddleware struct {
-	logger *slog.Logger
-	next   Scraper
-}
-
-// GetSongs wraps the [song.Service] call with logging attached.
-func (mw *scraperLoggingMiddleware) GetSongs(ctx context.Context) (out []song.Entity, err error) {
-	mw.logger.InfoContext(ctx, "getting songs")
-
-	defer func() {
-		if err != nil {
-			slog.ErrorContext(ctx, "failed to get songs", "err", err.Error())
-		} else {
-			slog.InfoContext(ctx, "successfully got songs", "songs_count", len(out))
-		}
-	}()
-
-	return mw.next.GetSongs(ctx)
 }

@@ -41,13 +41,13 @@ func NewScraperService(scrapers Scrapers, opts ...ScraperServiceOption) *Scraper
 type ScraperServiceOption func(*ScraperService)
 
 // ScrapeSongs gets all the songs from multiple sources and writes them in json format to [io.Writer].
-func (svc *ScraperService) ScrapeSongs(ctx context.Context, w io.Writer) error {
+func (svc *ScraperService) ScrapeSongs(ctx context.Context, out io.Writer) error {
 	songs, err := svc.getSongs(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get songs: %w", err)
 	}
 
-	if err := json.NewEncoder(w).Encode(songs); err != nil {
+	if err := json.NewEncoder(out).Encode(songs); err != nil {
 		return fmt.Errorf("failed to encode songs as json: %w", err)
 	}
 

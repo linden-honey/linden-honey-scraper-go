@@ -7,5 +7,5 @@ import (
 
 // Service is an interface of scraper use-cases.
 type Service interface {
-	ScrapeSongs(ctx context.Context, w io.Writer) error
+	ScrapeSongs(ctx context.Context, out io.Writer) error
 }

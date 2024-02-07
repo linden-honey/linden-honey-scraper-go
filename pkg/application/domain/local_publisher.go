@@ -9,25 +9,26 @@ import (
 )
 
 type LocalPublisherService struct {
-	fileName string
 }
 
-func NewLocalPublisherService(fileName string) *LocalPublisherService {
-	return &LocalPublisherService{
-		fileName: fileName,
-	}
+func NewLocalPublisherService() *LocalPublisherService {
+	return &LocalPublisherService{}
 }
 
-func (svc *LocalPublisherService) Publish(_ context.Context, in io.Reader) error {
-	if err := os.MkdirAll(filepath.Dir(svc.fileName), os.ModePerm); err != nil {
+func (svc *LocalPublisherService) Publish(_ context.Context, name string, in io.Reader) error {
+	if err := os.MkdirAll(filepath.Dir(name), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create output path: %w", err)
 	}
 
-	f, err := os.Create(svc.fileName)
+	out, err := os.Create(name)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer f.Close()
+	defer out.Close()
+
+	if _, err := io.Copy(out, in); err != nil {
+		return fmt.Errorf("failed to copy data to output file")
+	}
 
 	return nil
 }

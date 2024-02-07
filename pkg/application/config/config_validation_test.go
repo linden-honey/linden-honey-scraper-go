@@ -294,3 +294,38 @@ func TestRetryConfig_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestOutputConfig_Validate(t *testing.T) {
+	type fields struct {
+		FileName string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			fields: fields{
+				FileName: "./out/songs.json",
+			},
+		},
+		{
+			name: "err  empty file name",
+			fields: fields{
+				FileName: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := OutputConfig{
+				FileName: tt.fields.FileName,
+			}
+			if err := cfg.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("OutputConfig.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

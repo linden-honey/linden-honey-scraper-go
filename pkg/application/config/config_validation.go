@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"strings"
 
 	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
@@ -43,7 +44,7 @@ func (cfg ScraperConfig) Validate() error {
 
 // Validate validates a [ScraperConfig] and returns an error if validation is failed.
 func (cfg OutputConfig) Validate() error {
-	if cfg.FileName == "" {
+	if strings.TrimSpace(cfg.FileName) == "" {
 		return sdkerrors.NewInvalidValueError("FileName", sdkerrors.ErrEmptyValue)
 	}
 

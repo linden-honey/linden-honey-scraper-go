@@ -13,8 +13,8 @@ import (
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/scraper/parser"
 )
 
-func newScrapers(cfg config.ScrapersConfig) (domain.Scrapers, error) {
-	out := make(domain.Scrapers)
+func newScrapers(cfg config.ScrapersConfig) (map[string]domain.SongScraper, error) {
+	out := make(map[string]domain.SongScraper)
 
 	{
 		scr, err := newScraper(cfg.Grob, parser.NewGrobParser())

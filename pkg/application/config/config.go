@@ -30,6 +30,7 @@ type ScraperConfig struct {
 	Retry      RetryConfig       `envPrefix:"SCRAPER_"`
 }
 
+// OutputConfig is a configuration object.
 type OutputConfig struct {
 	FileName string `env:"OUTPUT_FILE_NAME"`
 }

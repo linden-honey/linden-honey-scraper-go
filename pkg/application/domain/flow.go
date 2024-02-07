@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/flow"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/publisher"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/domain/scraper"
 )
@@ -27,14 +28,22 @@ func NewFlowService(
 	}
 }
 
-func (svc *FlowService) Run(ctx context.Context) error {
+func (svc *FlowService) RunSimpleFlow(ctx context.Context, in flow.SimpleFlowInput) error {
+	if err := in.Validate(); err != nil {
+		return fmt.Errorf("failed to validate input: %w", err)
+	}
+
 	var buf bytes.Buffer
+
+	svc.logger.Info("scraping songs")
 
 	if err := svc.scrSvc.Scrape(ctx, &buf); err != nil {
 		return fmt.Errorf("failed to scrape: %w", err)
 	}
 
-	if err := svc.pubSvc.Publish(ctx, &buf); err != nil {
+	svc.logger.Info("publishing result", "output", in.OutputFileName)
+
+	if err := svc.pubSvc.Publish(ctx, in.OutputFileName, &buf); err != nil {
 		return fmt.Errorf("failed to publish: %w", err)
 	}
 

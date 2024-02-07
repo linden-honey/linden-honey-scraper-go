@@ -13,20 +13,21 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/application/domain/song"
 )
 
-type ScraperService struct {
-	scrapers Scrapers
+// SongScraperService is an implementation of [scraper.Service] for scraping songs.
+type SongScraperService struct {
+	scrapers map[string]SongScraper
 	logger   *slog.Logger
 }
 
-type Scrapers map[string]Scraper
-
-type Scraper interface {
+// SongScraper is an API for scraping songs.
+type SongScraper interface {
 	GetSongs(ctx context.Context) ([]song.Entity, error)
 }
 
-func NewScraperService(scrapers Scrapers, opts ...ScraperServiceOption) *ScraperService {
-	svc := &ScraperService{
-		scrapers: make(Scrapers),
+// NewSongsScraperService returns a pointer to the new instance of [SongScraperService].
+func NewSongsScraperService(scrapers map[string]SongScraper, opts ...SongScraperServiceOption) *SongScraperService {
+	svc := &SongScraperService{
+		scrapers: make(map[string]SongScraper),
 		logger:   slog.With("component", "scraper"),
 	}
 
@@ -39,10 +40,11 @@ func NewScraperService(scrapers Scrapers, opts ...ScraperServiceOption) *Scraper
 	return svc
 }
 
-type ScraperServiceOption func(*ScraperService)
+// SongScraperServiceOption set optional parameters for the [SongScraperService].
+type SongScraperServiceOption func(*SongScraperService)
 
-// Scrape gets all the songs from multiple sources and writes them in json format to [io.Writer].
-func (svc *ScraperService) Scrape(ctx context.Context, out io.Writer) error {
+// Scrape scrapes songs from multiple sources and writes the result in json format to [io.Writer]
+func (svc *SongScraperService) Scrape(ctx context.Context, out io.Writer) error {
 	songs, err := svc.getSongs(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get songs: %w", err)
@@ -55,7 +57,7 @@ func (svc *ScraperService) Scrape(ctx context.Context, out io.Writer) error {
 	return nil
 }
 
-func (svc *ScraperService) getSongs(ctx context.Context) ([]song.Entity, error) {
+func (svc *SongScraperService) getSongs(ctx context.Context) ([]song.Entity, error) {
 	out := make([]song.Entity, 0)
 	errs := make([]error, 0)
 	for scrID, scr := range svc.scrapers {

@@ -2,7 +2,7 @@ package flow
 
 import "testing"
 
-func TestSimpleFlowInput_Validate(t *testing.T) {
+func TestRunSimpleFlowRequest_Validate(t *testing.T) {
 	type fields struct {
 		OutputFileName string
 	}
@@ -27,7 +27,7 @@ func TestSimpleFlowInput_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			dto := SimpleFlowInput{
+			dto := RunSimpleFlowRequest{
 				OutputFileName: tt.fields.OutputFileName,
 			}
 			if err := dto.Validate(); (err != nil) != tt.wantErr {

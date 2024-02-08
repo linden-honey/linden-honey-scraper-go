@@ -6,5 +6,5 @@ import (
 
 // Service is an interface of flow use-cases.
 type Service interface {
-	RunSimpleFlow(ctx context.Context, in SimpleFlowInput) error
+	RunSimpleFlow(ctx context.Context, in RunSimpleFlowRequest) error
 }

@@ -7,7 +7,7 @@ import (
 	sdkerrors "github.com/linden-honey/linden-honey-sdk-go/errors"
 )
 
-func (dto SimpleFlowInput) Validate() error {
+func (dto RunSimpleFlowRequest) Validate() error {
 	errs := make([]error, 0)
 
 	if strings.TrimSpace(dto.OutputFileName) == "" {

@@ -28,7 +28,7 @@ func NewFlowService(
 	}
 }
 
-func (svc *FlowService) RunSimpleFlow(ctx context.Context, in flow.SimpleFlowInput) error {
+func (svc *FlowService) RunSimpleFlow(ctx context.Context, in flow.RunSimpleFlowRequest) error {
 	if err := in.Validate(); err != nil {
 		return fmt.Errorf("failed to validate input: %w", err)
 	}

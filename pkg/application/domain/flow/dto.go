@@ -1,5 +1,5 @@
 package flow
 
-type SimpleFlowInput struct {
+type RunSimpleFlowRequest struct {
 	OutputFileName string
 }

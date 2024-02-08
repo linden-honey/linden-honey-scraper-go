@@ -21,12 +21,12 @@ all: build test
 fmt:
 	$(GO) fmt $(PACKAGES)
 
-.PHONY: mod/download
-mod/download:
-	$(GO) mod download
+.PHONY: mod/tidy
+mod/tidy:
+	$(GO) mod tidy
 
 .PHONY: prepare
-prepare: mod/download fmt
+prepare: mod/tidy fmt
 
 .PHONY: build
 build: prepare

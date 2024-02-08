@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"path/filepath"
 
 	"github.com/linden-honey/linden-honey-scraper-go/cmd"
 	"github.com/linden-honey/linden-honey-scraper-go/pkg/application/config"
@@ -55,11 +54,9 @@ func main() {
 	}
 
 	{
-		outputFileName := filepath.Base()
-		slog.Info("running flow", "output", outputFileName)
 
 		if err := svc.RunSimpleFlow(ctx, flow.RunSimpleFlowRequest{
-			OutputFileName: outputFileName,
+			OutputFileName: cfg.Output.FileName,
 		}); err != nil {
 			cmd.Fatal(fmt.Errorf("failed to run flow: %w", err))
 		}

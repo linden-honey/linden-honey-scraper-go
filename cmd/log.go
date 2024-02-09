@@ -6,8 +6,13 @@ import (
 )
 
 func InitLogger() {
+	var lvl slog.Level
+	if _, ok := os.LookupEnv("DEBUG"); ok {
+		lvl = slog.LevelDebug
+	}
+
 	l := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: lvl,
 	}))
 
 	slog.SetDefault(l)

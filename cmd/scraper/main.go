@@ -39,7 +39,6 @@ func main() {
 
 	slog.Info("initializing services")
 
-	// TODO: think about initialization of services (single variable or multiple)
 	var svc flow.Service
 	{
 		scrapers, err := newScrapers(cfg.Scrapers)

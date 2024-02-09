@@ -19,9 +19,9 @@ func NewGrobParser() *GrobParser {
 	return &GrobParser{}
 }
 
-// ParseSong parses the input html and returns a pointer to the new instance of [song.Entity] or an error.
-func (p *GrobParser) ParseSong(input string) (*song.Entity, error) {
-	document, err := p.parseHTML(input)
+// ParseSong parses the in html and returns a pointer to the new instance of [song.Entity] or an error.
+func (p *GrobParser) ParseSong(in string) (*song.Entity, error) {
+	document, err := p.parseHTML(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
@@ -47,9 +47,9 @@ func (p *GrobParser) ParseSong(input string) (*song.Entity, error) {
 	}, nil
 }
 
-// ParsePreviews parses the input html and returns a slice of [song.Metadata] instances or an error.
-func (p *GrobParser) ParsePreviews(input string) ([]song.Metadata, error) {
-	document, err := p.parseHTML(input)
+// ParsePreviews parses the in html and returns a slice of [song.Metadata] instances or an error.
+func (p *GrobParser) ParsePreviews(in string) ([]song.Metadata, error) {
+	document, err := p.parseHTML(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
@@ -106,11 +106,11 @@ func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
 	return tags
 }
 
-func (p *GrobParser) parseLyrics(input string) (song.Lyrics, error) {
+func (p *GrobParser) parseLyrics(in string) (song.Lyrics, error) {
 	out := make(song.Lyrics, 0)
-	// hint: match nbsp; character (\xA0) that not included input \s group
+	// hint: `\xA0` match `&nbsp;`(`\u00A0`, non-breaking space character) that is not included in \s group
 	re := regexp.MustCompile(`(?:<br/>[\s\xA0]*){2,}`)
-	for _, verseHTML := range re.Split(input, -1) {
+	for _, verseHTML := range re.Split(in, -1) {
 		verse, err := p.parseVerse(verseHTML)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse a verse: %w", err)
@@ -122,9 +122,9 @@ func (p *GrobParser) parseLyrics(input string) (song.Lyrics, error) {
 	return out, nil
 }
 
-func (p *GrobParser) parseVerse(input string) (song.Verse, error) {
+func (p *GrobParser) parseVerse(in string) (song.Verse, error) {
 	out := make(song.Verse, 0)
-	for _, text := range strings.Split(input, "<br/>") {
+	for _, text := range strings.Split(in, "<br/>") {
 		quote, err := p.parseQuote(text)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse a quote: %w", err)
@@ -136,20 +136,21 @@ func (p *GrobParser) parseVerse(input string) (song.Verse, error) {
 	return out, nil
 }
 
-func (p *GrobParser) parseQuote(input string) (song.Quote, error) {
-	document, err := p.parseHTML(input)
+func (p *GrobParser) parseQuote(in string) (song.Quote, error) {
+	document, err := p.parseHTML(in)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse html: %w", err)
 	}
 
-	re := regexp.MustCompile(`\s+`)
+	// hint: `\xA0` match `&nbsp;`(`\u00A0`, non-breaking space character) that is not included in \s group
+	re := regexp.MustCompile(`[\s\xA0]+`)
 	quote := re.ReplaceAllLiteralString(strings.TrimSpace(document.Text()), " ")
 
 	return song.Quote(quote), nil
 }
 
-func (p *GrobParser) parseHTML(input string) (*goquery.Document, error) {
-	document, err := goquery.NewDocumentFromReader(strings.NewReader(input))
+func (p *GrobParser) parseHTML(in string) (*goquery.Document, error) {
+	document, err := goquery.NewDocumentFromReader(strings.NewReader(in))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a document: %w", err)
 	}

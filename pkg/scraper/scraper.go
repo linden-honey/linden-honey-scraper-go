@@ -23,8 +23,8 @@ type Fetcher interface {
 
 // Parser is a component for parsing content into domain types.
 type Parser interface {
-	ParseSong(input string) (*song.Entity, error)
-	ParsePreviews(input string) ([]song.Metadata, error)
+	ParseSong(in string) (*song.Entity, error)
+	ParsePreviews(in string) ([]song.Metadata, error)
 }
 
 // New returns a pointer to the new instance of [Scraper] or an error.

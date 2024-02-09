@@ -69,8 +69,7 @@ func WithRetry(retry retryFunc) Option {
 	}
 }
 
-// Fetch sends a GET-request under a relative path and returns the content as a string
-// or returns an error.
+// Fetch gets a resource under the relative path and returns it as a UTF-8 encoded string or returns an error.
 func (f *Fetcher) Fetch(ctx context.Context, path string) (string, error) {
 	u, err := f.baseURL.Parse(path)
 	if err != nil {

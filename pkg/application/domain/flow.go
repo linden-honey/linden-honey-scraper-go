@@ -24,24 +24,28 @@ func NewFlowService(
 	return &FlowService{
 		scrSvc: scrSvc,
 		pubSvc: pubSvc,
-		logger: slog.With("component", "flow"),
+		logger: slog.With(
+			"component", "flow",
+		),
 	}
 }
 
 func (svc *FlowService) RunSimpleFlow(ctx context.Context, in flow.RunSimpleFlowRequest) error {
+	svc.logger.InfoContext(ctx, "running simple flow")
+
 	if err := in.Validate(); err != nil {
 		return fmt.Errorf("failed to validate input: %w", err)
 	}
 
 	var buf bytes.Buffer
 
-	svc.logger.Info("scraping songs")
+	svc.logger.Info("scraping data")
 
 	if err := svc.scrSvc.Scrape(ctx, &buf); err != nil {
 		return fmt.Errorf("failed to scrape: %w", err)
 	}
 
-	svc.logger.Info("publishing result", "output", in.ArtifactName)
+	svc.logger.Info("publishing the artifact", "artifact_name", in.ArtifactName)
 
 	if err := svc.pubSvc.Publish(ctx, in.ArtifactName, &buf); err != nil {
 		return fmt.Errorf("failed to publish: %w", err)

@@ -28,7 +28,10 @@ type SongScraper interface {
 func NewSongsScraperService(scrapers map[string]SongScraper, opts ...SongScraperServiceOption) *SongScraperService {
 	svc := &SongScraperService{
 		scrapers: make(map[string]SongScraper),
-		logger:   slog.With("component", "scraper"),
+		logger: slog.With(
+			"component", "scraper",
+			"scraper", "song",
+		),
 	}
 
 	maps.Copy(svc.scrapers, scrapers)
@@ -45,13 +48,17 @@ type SongScraperServiceOption func(*SongScraperService)
 
 // Scrape scrapes songs from multiple sources and writes the result in json format to [io.Writer]
 func (svc *SongScraperService) Scrape(ctx context.Context, out io.Writer) error {
+	svc.logger.InfoContext(ctx, "getting songs")
+
 	songs, err := svc.getSongs(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get songs: %w", err)
 	}
 
+	svc.logger.InfoContext(ctx, "encoding songs in json format", "songs_count", len(songs))
+
 	if err := json.NewEncoder(out).Encode(songs); err != nil {
-		return fmt.Errorf("failed to encode songs as json: %w", err)
+		return fmt.Errorf("failed to encode songs in json format: %w", err)
 	}
 
 	return nil
@@ -61,7 +68,7 @@ func (svc *SongScraperService) getSongs(ctx context.Context) ([]song.Entity, err
 	out := make([]song.Entity, 0)
 	errs := make([]error, 0)
 	for scrID, scr := range svc.scrapers {
-		svc.logger.InfoContext(ctx, "getting songs", "scraper_id", scrID)
+		svc.logger.DebugContext(ctx, "getting songs from the scraper", "scraper_id", scrID)
 
 		songs, err := scr.GetSongs(ctx)
 		if err != nil {
@@ -69,7 +76,7 @@ func (svc *SongScraperService) getSongs(ctx context.Context) ([]song.Entity, err
 			continue
 		}
 
-		svc.logger.InfoContext(ctx, "songs successfully received", "scraper_id", scrID, "songs_count", len(songs))
+		svc.logger.DebugContext(ctx, "songs successfully received from the scraper", "scraper_id", scrID, "songs_count", len(songs))
 
 		out = append(out, songs...)
 	}

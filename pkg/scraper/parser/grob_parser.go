@@ -107,7 +107,7 @@ func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
 }
 
 func (p *GrobParser) parseLyrics(input string) (song.Lyrics, error) {
-	verses := make(song.Lyrics, 0)
+	out := make(song.Lyrics, 0)
 	// hint: match nbsp; character (\xA0) that not included input \s group
 	re := regexp.MustCompile(`(?:<br/>[\s\xA0]*){2,}`)
 	for _, verseHTML := range re.Split(input, -1) {
@@ -116,40 +116,36 @@ func (p *GrobParser) parseLyrics(input string) (song.Lyrics, error) {
 			return nil, fmt.Errorf("failed to parse a verse: %w", err)
 		}
 
-		verses = append(verses, *verse)
+		out = append(out, verse)
 	}
 
-	return verses, nil
+	return out, nil
 }
 
-func (p *GrobParser) parseVerse(input string) (*song.Verse, error) {
-	quotes := make([]song.Quote, 0)
+func (p *GrobParser) parseVerse(input string) (song.Verse, error) {
+	out := make(song.Verse, 0)
 	for _, text := range strings.Split(input, "<br/>") {
 		quote, err := p.parseQuote(text)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse a quote: %w", err)
 		}
-		quotes = append(quotes, *quote)
+
+		out = append(out, quote)
 	}
 
-	return &song.Verse{
-		Quotes: quotes,
-	}, nil
+	return out, nil
 }
 
-func (p *GrobParser) parseQuote(input string) (*song.Quote, error) {
+func (p *GrobParser) parseQuote(input string) (song.Quote, error) {
 	document, err := p.parseHTML(input)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse html: %w", err)
+		return "", fmt.Errorf("failed to parse html: %w", err)
 	}
 
 	re := regexp.MustCompile(`\s+`)
-	phrase := re.ReplaceAllLiteralString(strings.TrimSpace(document.Text()), " ")
-	quote := &song.Quote{
-		Phrase: phrase,
-	}
+	quote := re.ReplaceAllLiteralString(strings.TrimSpace(document.Text()), " ")
 
-	return quote, nil
+	return song.Quote(quote), nil
 }
 
 func (p *GrobParser) parseHTML(input string) (*goquery.Document, error) {

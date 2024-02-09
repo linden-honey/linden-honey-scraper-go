@@ -56,7 +56,7 @@ func main() {
 	{
 
 		if err := svc.RunSimpleFlow(ctx, flow.RunSimpleFlowRequest{
-			OutputFileName: cfg.Output.FileName,
+			ArtifactName: cfg.Output.FileName,
 		}); err != nil {
 			cmd.Fatal(fmt.Errorf("failed to run flow: %w", err))
 		}

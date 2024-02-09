@@ -15,12 +15,12 @@ func NewLocalPublisherService() *LocalPublisherService {
 	return &LocalPublisherService{}
 }
 
-func (svc *LocalPublisherService) Publish(_ context.Context, name string, in io.Reader) error {
-	if err := os.MkdirAll(filepath.Dir(name), os.ModePerm); err != nil {
+func (svc *LocalPublisherService) Publish(_ context.Context, artifactName string, in io.Reader) error {
+	if err := os.MkdirAll(filepath.Dir(artifactName), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create output path: %w", err)
 	}
 
-	out, err := os.Create(name)
+	out, err := os.Create(artifactName)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}

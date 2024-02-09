@@ -41,9 +41,9 @@ func (svc *FlowService) RunSimpleFlow(ctx context.Context, in flow.RunSimpleFlow
 		return fmt.Errorf("failed to scrape: %w", err)
 	}
 
-	svc.logger.Info("publishing result", "output", in.OutputFileName)
+	svc.logger.Info("publishing result", "output", in.ArtifactName)
 
-	if err := svc.pubSvc.Publish(ctx, in.OutputFileName, &buf); err != nil {
+	if err := svc.pubSvc.Publish(ctx, in.ArtifactName, &buf); err != nil {
 		return fmt.Errorf("failed to publish: %w", err)
 	}
 

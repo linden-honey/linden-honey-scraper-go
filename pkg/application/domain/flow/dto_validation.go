@@ -10,8 +10,8 @@ import (
 func (dto RunSimpleFlowRequest) Validate() error {
 	errs := make([]error, 0)
 
-	if strings.TrimSpace(dto.OutputFileName) == "" {
-		errs = append(errs, sdkerrors.NewRequiredValueError("OutputFileName"))
+	if strings.TrimSpace(dto.ArtifactName) == "" {
+		errs = append(errs, sdkerrors.NewRequiredValueError("ArtifactName"))
 	}
 
 	return errors.Join(errs...)

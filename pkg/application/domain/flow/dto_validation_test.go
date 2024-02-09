@@ -4,7 +4,7 @@ import "testing"
 
 func TestRunSimpleFlowRequest_Validate(t *testing.T) {
 	type fields struct {
-		OutputFileName string
+		ArtifactName string
 	}
 	tests := []struct {
 		name    string
@@ -14,13 +14,13 @@ func TestRunSimpleFlowRequest_Validate(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				OutputFileName: "./out/songs.json",
+				ArtifactName: "./out/songs.json",
 			},
 		},
 		{
 			name: "err  empty file name",
 			fields: fields{
-				OutputFileName: "",
+				ArtifactName: "",
 			},
 			wantErr: true,
 		},
@@ -28,7 +28,7 @@ func TestRunSimpleFlowRequest_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dto := RunSimpleFlowRequest{
-				OutputFileName: tt.fields.OutputFileName,
+				ArtifactName: tt.fields.ArtifactName,
 			}
 			if err := dto.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("SimpleFlowInput.Validate() error = %v, wantErr %v", err, tt.wantErr)

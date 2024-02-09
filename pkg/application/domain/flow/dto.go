@@ -1,5 +1,5 @@
 package flow
 
 type RunSimpleFlowRequest struct {
-	OutputFileName string
+	ArtifactName string
 }

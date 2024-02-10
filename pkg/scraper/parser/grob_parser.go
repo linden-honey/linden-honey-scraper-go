@@ -10,6 +10,12 @@ import (
 	"github.com/linden-honey/linden-honey-api-go/pkg/application/domain/song"
 )
 
+var (
+	// HINT: `\xA0` match `&nbsp;`(non-breaking space character) that is not included in \s group
+	ReOneOrMoreSpace     = regexp.MustCompile(`[\s\xA0]+`)
+	ReGrobVerseSeparator = regexp.MustCompile(`(?:<br/>[\s\xA0]*){2,}`)
+)
+
 // GrobParser is the implementation of a song parser for the site gr-oborona.ru.
 type GrobParser struct {
 }
@@ -77,7 +83,7 @@ func (p *GrobParser) ParsePreviews(in string) ([]song.Metadata, error) {
 func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
 	tags := make(song.Tags, 0)
 
-	author := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ": "))
+	author := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Автор))").Text(), ":"))
 	if author != "" {
 		tags = append(tags, song.Tag{
 			Name:  "author",
@@ -85,7 +91,7 @@ func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
 		})
 	}
 
-	album := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ": "))
+	album := strings.TrimSpace(substringAfterLast(document.Find("p:has(strong:contains(Альбом))").Text(), ":"))
 	if album != "" {
 		if artist, ok := findKeyByValueInMultiValueMap(grobArtistAlbums, album); ok {
 			tags = append(tags, song.Tag{
@@ -108,9 +114,7 @@ func (p *GrobParser) parseTags(document *goquery.Document) song.Tags {
 
 func (p *GrobParser) parseLyrics(in string) (song.Lyrics, error) {
 	out := make(song.Lyrics, 0)
-	// hint: `\xA0` match `&nbsp;`(`\u00A0`, non-breaking space character) that is not included in \s group
-	re := regexp.MustCompile(`(?:<br/>[\s\xA0]*){2,}`)
-	for _, verseHTML := range re.Split(in, -1) {
+	for _, verseHTML := range ReGrobVerseSeparator.Split(in, -1) {
 		verse, err := p.parseVerse(verseHTML)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse a verse: %w", err)
@@ -124,8 +128,8 @@ func (p *GrobParser) parseLyrics(in string) (song.Lyrics, error) {
 
 func (p *GrobParser) parseVerse(in string) (song.Verse, error) {
 	out := make(song.Verse, 0)
-	for _, text := range strings.Split(in, "<br/>") {
-		quote, err := p.parseQuote(text)
+	for _, quoteHTML := range strings.Split(in, "<br/>") {
+		quote, err := p.parseQuote(quoteHTML)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse a quote: %w", err)
 		}
@@ -142,9 +146,8 @@ func (p *GrobParser) parseQuote(in string) (song.Quote, error) {
 		return "", fmt.Errorf("failed to parse html: %w", err)
 	}
 
-	// hint: `\xA0` match `&nbsp;`(`\u00A0`, non-breaking space character) that is not included in \s group
-	re := regexp.MustCompile(`[\s\xA0]+`)
-	quote := re.ReplaceAllLiteralString(strings.TrimSpace(document.Text()), " ")
+	quoteText := document.Text()
+	quote := ReOneOrMoreSpace.ReplaceAllLiteralString(strings.TrimSpace(quoteText), " ")
 
 	return song.Quote(quote), nil
 }

@@ -11,8 +11,12 @@ import (
 
 // Scraper is an implementation of a songs scraper from some source.
 type Scraper struct {
-	fetcher    Fetcher
-	parser     Parser
+	fetcher Fetcher
+	parser  Parser
+
+	songResourcePath             string
+	songMetadataListResourcePath string
+
 	validation bool
 }
 
@@ -34,8 +38,10 @@ func New(
 	opts ...Option,
 ) (*Scraper, error) {
 	scr := &Scraper{
-		fetcher: f,
-		parser:  p,
+		fetcher:                      f,
+		parser:                       p,
+		songResourcePath:             "/%s",
+		songMetadataListResourcePath: "/",
 	}
 
 	for _, opt := range opts {
@@ -51,6 +57,20 @@ func New(
 
 // Option set optional parameters for the [Scraper].
 type Option func(*Scraper)
+
+// WithSongResourcePath sets a templated path to the song resource accepting the song ID as a string for the [Scraper].
+func WithSongResourcePath(path string) Option {
+	return func(scr *Scraper) {
+		scr.songResourcePath = path
+	}
+}
+
+// WithSongMetadataListResourcePath sets a path to the song metadata list resource for the [Scraper].
+func WithSongMetadataListResourcePath(path string) Option {
+	return func(scr *Scraper) {
+		scr.songMetadataListResourcePath = path
+	}
+}
 
 // WithValidation enables or disables domain types validation for the [Scraper].
 func WithValidation(validation bool) Option {
@@ -103,7 +123,7 @@ loop:
 
 // GetSongMetadataList scrapes a list of songs and returns a slice of [song.Metadata] instances or an error.
 func (scr *Scraper) GetSongMetadataList(ctx context.Context) ([]song.Metadata, error) {
-	data, err := scr.fetcher.Fetch(ctx, "texts")
+	data, err := scr.fetcher.Fetch(ctx, scr.songMetadataListResourcePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
@@ -135,7 +155,7 @@ func (scr *Scraper) GetSongMetadataList(ctx context.Context) ([]song.Metadata, e
 
 // GetSong scrapes a song by id and returns a pointer to the new instance of [song.Entity] or an error.
 func (scr *Scraper) GetSong(ctx context.Context, id string) (*song.Entity, error) {
-	content, err := scr.fetcher.Fetch(ctx, fmt.Sprintf("text_print.php?area=go_texts&id=%s", id))
+	content, err := scr.fetcher.Fetch(ctx, fmt.Sprintf(scr.songResourcePath, id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}

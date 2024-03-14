@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net/url"
-	"reflect"
 	"time"
 
 	"golang.org/x/text/encoding"
@@ -24,10 +23,12 @@ type ScrapersConfig struct {
 
 // ScraperConfig is a configuration object.
 type ScraperConfig struct {
-	BaseURL    url.URL           `env:"SCRAPER_BASE_URL"`
-	Encoding   encoding.Encoding `env:"SCRAPER_ENCODING"`
-	Validation bool              `env:"SCRAPER_VALIDATION"`
-	Retry      RetryConfig       `envPrefix:"SCRAPER_"`
+	BaseURL                      url.URL           `env:"SCRAPER_BASE_URL"`
+	Encoding                     encoding.Encoding `env:"SCRAPER_ENCODING"`
+	SongResourcePath             string            `env:"SCRAPER_SONG_RESOURCE_PATH"`
+	SongMetadataListResourcePath string            `env:"SCRAPER_SONG_METADATA_LIST_RESOURCE_PATH"`
+	Validation                   bool              `env:"SCRAPER_VALIDATION"`
+	Retry                        RetryConfig       `envPrefix:"SCRAPER_"`
 }
 
 // OutputConfig is a configuration object.
@@ -48,8 +49,6 @@ type RetryConfig struct {
 // New returns a pointer to the new instance of [Config] or an error.
 func New() (*Config, error) {
 	cfg := Default()
-
-	fmt.Println(reflect.TypeOf((*encoding.Encoding)(nil)).Elem())
 
 	if err := env.ParseWithFuncs(&cfg, Parsers(), env.Options{
 		Prefix: "APPLICATION_",

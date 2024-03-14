@@ -15,7 +15,10 @@ func Default() Config {
 					Scheme: "https",
 					Host:   "www.gr-oborona.ru",
 				},
-				Encoding: charmap.Windows1251,
+				Encoding:                     charmap.Windows1251,
+				SongResourcePath:             "/text_print.php?area=go_texts&id=%s",
+				SongMetadataListResourcePath: "/texts",
+				Validation:                   true,
 				Retry: RetryConfig{
 					Enabled:        true,
 					Attempts:       5,

@@ -42,6 +42,8 @@ func newScraper(cfg config.ScraperConfig, p scraper.Parser) (*scraper.Scraper, e
 		f,
 		p,
 		scraper.WithValidation(cfg.Validation),
+		scraper.WithSongResourcePath(cfg.SongResourcePath),
+		scraper.WithSongMetadataListResourcePath(cfg.SongMetadataListResourcePath),
 	)
 }
 

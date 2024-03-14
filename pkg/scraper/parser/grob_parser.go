@@ -25,7 +25,7 @@ func NewGrobParser() *GrobParser {
 	return &GrobParser{}
 }
 
-// ParseSong parses the in html and returns a pointer to the new instance of [song.Entity] or an error.
+// ParseSong parses input html and returns a pointer to the new instance of [song.Entity] or an error.
 func (p *GrobParser) ParseSong(in string) (*song.Entity, error) {
 	document, err := p.parseHTML(in)
 	if err != nil {
@@ -53,8 +53,8 @@ func (p *GrobParser) ParseSong(in string) (*song.Entity, error) {
 	}, nil
 }
 
-// ParsePreviews parses the in html and returns a slice of [song.Metadata] instances or an error.
-func (p *GrobParser) ParsePreviews(in string) ([]song.Metadata, error) {
+// ParseSongMetadataList parses input html and returns a slice of [song.Metadata] instances or an error.
+func (p *GrobParser) ParseSongMetadataList(in string) ([]song.Metadata, error) {
 	document, err := p.parseHTML(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
